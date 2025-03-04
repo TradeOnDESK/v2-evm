@@ -31,6 +31,7 @@ interface ILimitTradeHandler {
   error ILimitTradeHandler_PriceSlippage();
   error ILimitTradeHandler_MaxPositionSize();
   error ILimitTradeHandler_MaxTradeSize();
+  error ILimitTradeHandler_NotWhitelistedOrNotOwner();
 
   /**
    * Enums

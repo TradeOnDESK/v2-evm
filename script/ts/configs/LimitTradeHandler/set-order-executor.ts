@@ -1,30 +1,38 @@
-import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { DeployFunction } from "hardhat-deploy/types";
-import { ethers } from "hardhat";
-import { EvmPriceServiceConnection } from "@pythnetwork/pyth-evm-js";
-import {
-  IPyth__factory,
-  LimitTradeHandler__factory,
-  MockPyth__factory,
-  PythAdapter__factory,
-} from "../../../../typechain";
-import { getConfig } from "../../utils/config";
+import { LimitTradeHandler__factory } from "../../../../typechain";
+import { loadConfig } from "../../utils/config";
+import { Command } from "commander";
+import signers from "../../entities/signers";
+import { OwnerWrapper } from "../../wrappers/OwnerWrapper";
 
-const config = getConfig();
-const BigNumber = ethers.BigNumber;
-const parseUnits = ethers.utils.parseUnits;
+async function main(chainId: number) {
+  const config = loadConfig(chainId);
+  const deployer = signers.deployer(chainId);
+  const ownerWrapper = new OwnerWrapper(chainId, deployer);
 
-const orderExecutor = "0x6629eC35c8Aa279BA45Dbfb575c728d3812aE31a";
+  const orderExecutor = "0xF1235511e36f2F4D578555218c41fe1B1B5dcc1E";
 
-async function main() {
-  const deployer = (await ethers.getSigners())[0];
-
-  console.log("> LimitTradeHandler: Set Order Executor...");
   const limitTradeHandler = LimitTradeHandler__factory.connect(config.handlers.limitTrade, deployer);
-  await (await limitTradeHandler.setOrderExecutor(orderExecutor, true)).wait();
-  console.log("> LimitTradeHandler: Set Order Executor success!");
+  console.log(`[configs/LimitTradeHandler] Set Order Executor`);
+  await ownerWrapper.authExec(
+    limitTradeHandler.address,
+    limitTradeHandler.interface.encodeFunctionData("setOrderExecutor", [orderExecutor, true])
+  );
+  console.log("[configs/LimitTradeHandler] Finished");
 }
-main().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
-});
+
+const prog = new Command();
+
+prog.requiredOption("--chain-id <number>", "chain id", parseInt);
+
+prog.parse(process.argv);
+
+const opts = prog.opts();
+
+main(opts.chainId)
+  .then(() => {
+    process.exit(0);
+  })
+  .catch((error) => {
+    console.error(error);
+    process.exitCode = 1;
+  });

@@ -3,14 +3,13 @@ import { loadConfig } from "../../utils/config";
 import { Command } from "commander";
 import signers from "../../entities/signers";
 import { OwnerWrapper } from "../../wrappers/OwnerWrapper";
-import { ethers } from "ethers";
 
 async function main(chainId: number) {
   const config = loadConfig(chainId);
   const deployer = signers.deployer(chainId);
   const ownerWrapper = new OwnerWrapper(chainId, deployer);
 
-  const gasPremiumBps = 10000; // 100% = 2x premium
+  const gasPremiumBps = 1000; // 10%
 
   const gasService = GasService__factory.connect(config.services.gas, deployer);
   console.log(`[configs/GasService] Set Gas Premium Bps`);
