@@ -40,23 +40,6 @@ contract UnsafeEcoPythCalldataBuilder3 is IEcoPythCalldataBuilder3 {
   }
 
   function isOverMaxDiff(bytes32 _assetId, int64 _price, uint32 _maxDiffBps) internal view returns (bool) {
-    int64 _latestPrice = 0;
-    // If cannot get price from EcoPyth, then assume the price is 1e8.
-    // Cases where EcoPyth cannot return price:
-    // - New assets that are not listed on EcoPyth yet.
-    // - New assets that over previous array length
-    try ecoPyth.getPriceUnsafe(_assetId) returns (PythStructs.Price memory _ecoPythPrice) {
-      // If price is exactly 1e8, then assume the price is not available.
-      _latestPrice = _ecoPythPrice.price == 1e8 ? _price : _ecoPythPrice.price;
-    } catch {
-      _latestPrice = _price;
-    }
-    if (_latestPrice * 10000 > _price * int32(_maxDiffBps)) {
-      return true;
-    }
-    if (_latestPrice * int32(_maxDiffBps) < _price * 10000) {
-      return true;
-    }
     return false;
   }
 
@@ -152,5 +135,40 @@ contract UnsafeEcoPythCalldataBuilder3 is IEcoPythCalldataBuilder3 {
     } else {
       blockNumber = block.number;
     }
+  }
+
+  function buildAsPrices(BuildData[] calldata _data) external view returns (uint256[] memory priceE8s) {
+    validateAssetOrder(_data);
+    uint _dataLength = _data.length;
+    priceE8s = new uint256[](_dataLength);
+
+    // 2. Build ticks and publish time diffs
+    for (uint _i = 0; _i < _dataLength; ) {
+      IPriceAdapter ocPriceAdapter = ocLens.priceAdapterById(_data[_i].assetId);
+      ICalcPriceAdapter cPriceAdapter = cLens.priceAdapterById(_data[_i].assetId);
+
+      if (address(ocPriceAdapter) != address(0)) {
+        // Use OnChainPriceLens, then make tick
+        uint256 priceE18 = ocPriceAdapter.getPrice();
+        priceE8s[_i] = priceE18 / 1e10;
+      } else if (address(cPriceAdapter) != address(0)) {
+        // Use CIXPriceLens, then make tick
+        uint256 priceE18 = cPriceAdapter.getPrice(_data);
+        priceE8s[_i] = priceE18 / 1e10;
+      } else {
+        // Make tick right away
+        priceE8s[_i] = _priceE18TickPriceE8(PythLib.convertToUint(_data[_i].priceE8, -8, 18));
+      }
+
+      unchecked {
+        ++_i;
+      }
+    }
+  }
+
+  function _priceE18TickPriceE8(uint256 priceE18) internal pure returns (uint256) {
+    int24 _tick = TickMath.getTickAtSqrtRatio(SqrtX96Codec.encode(priceE18));
+    uint160 _sqrtPriceX96 = TickMath.getSqrtRatioAtTick(_tick);
+    return (uint256(_sqrtPriceX96) * (uint256(_sqrtPriceX96)) * (1e8)) >> (96 * 2);
   }
 }

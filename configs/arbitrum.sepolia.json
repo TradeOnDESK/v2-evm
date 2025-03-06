@@ -44,7 +44,7 @@
     "ecoPythCalldataBuilder2": "",
     "unsafeEcoPythCalldataBuilder2": "",
     "ecoPythCalldataBuilder3": "0x624d207861E34de865Bd7760337c6124ac4c585c",
-    "unsafeEcoPythCalldataBuilder3": "0x1d90c87B1729F850771BC48B170CD2e6C0031bFC",
+    "unsafeEcoPythCalldataBuilder3": "0x3e173e2D05538c67A8b91D0E57c2fE99c045E710",
     "onChainPriceLens": "0x2f035c75bE06cdDCA5E23649d9635f649Cb279E5",
     "calcPriceLens": "0x3fADCFbaD794eF3129094A55BEf54e75E0c151Ad",
     "priceAdapters": {
