@@ -14,24 +14,54 @@ async function main(chainId: number) {
   const inputs = [
     {
       marketIndex: 0,
-      maxLongPositionSize: 1_500_000,
-      maxShortPositionSize: 1_500_000,
+      maxLongPositionSize: 1_000_000,
+      maxShortPositionSize: 1_000_000,
     },
     {
       marketIndex: 1,
-      maxLongPositionSize: 1_500_000,
-      maxShortPositionSize: 1_500_000,
+      maxLongPositionSize: 1_000_000,
+      maxShortPositionSize: 1_000_000,
     },
-    {
-      marketIndex: 23,
-      maxLongPositionSize: 200_000,
-      maxShortPositionSize: 200_000,
-    },
-    {
-      marketIndex: 25,
-      maxLongPositionSize: 1_500_000,
-      maxShortPositionSize: 1_500_000,
-    },
+    // {
+    //   marketIndex: 23,
+    //   maxLongPositionSize: 20_000,
+    //   maxShortPositionSize: 20_000,
+    // },
+    // {
+    //   marketIndex: 25,
+    //   maxLongPositionSize: 20_000,
+    //   maxShortPositionSize: 20_000,
+    // },
+    // {
+    //   marketIndex: 44,
+    //   maxLongPositionSize: 20_000,
+    //   maxShortPositionSize: 20_000,
+    // },
+    // {
+    //   marketIndex: 15,
+    //   maxLongPositionSize: 20_000,
+    //   maxShortPositionSize: 20_000,
+    // },
+    // {
+    //   marketIndex: 16,
+    //   maxLongPositionSize: 20_000,
+    //   maxShortPositionSize: 20_000,
+    // },
+    // {
+    //   marketIndex: 50,
+    //   maxLongPositionSize: 20_000,
+    //   maxShortPositionSize: 20_000,
+    // },
+    // {
+    //   marketIndex: 20,
+    //   maxLongPositionSize: 50_000,
+    //   maxShortPositionSize: 50_000,
+    // },
+    // {
+    //   marketIndex: 51,
+    //   maxLongPositionSize: 20_000,
+    //   maxShortPositionSize: 20_000,
+    // },
   ];
 
   const deployer = signers.deployer(chainId);
