@@ -12,20 +12,20 @@ async function main(chainId: number) {
   const config = loadConfig(chainId);
   const provider = chains[chainId].jsonRpcProvider;
   const signer = signers.deployer(chainId);
-  const intentBuilder = IntentBuilder__factory.connect(config.helpers.intentBuilder, signer);
+  const intentBuilder = IntentBuilder__factory.connect("0xa7D01695B0a5dc8354aD18ed17ac255136cF7543", signer);
   const intentHandler = IntentHandler__factory.connect(config.handlers.intent, signer);
 
   const account = "0x6629eC35c8Aa279BA45Dbfb575c728d3812aE31a";
-  const subAccountId = 1;
-  const marketIndex = 47;
-  const sizeDelta = ethers.utils.parseUnits("-900", 30);
+  const subAccountId = 0;
+  const marketIndex = 0;
+  const sizeDelta = ethers.utils.parseUnits("1000000", 30);
   const triggerPrice = 0;
-  const acceptablePrice = ethers.utils.parseUnits("11.648282969", 30);
+  const acceptablePrice = ethers.utils.parseUnits("5000", 30);
   const triggerAboveThreshold = true;
   const reduceOnly = false;
-  const tpToken = "0xB853c09b6d03098b841300daD57701ABcFA80228";
-  const createdTimestamp = 1706689694;
-  const expiryTimestamp = 1706689994;
+  const tpToken = config.tokens.usdc;
+  const createdTimestamp = (new Date().valueOf() / 1000).toFixed();
+  const expiryTimestamp = (new Date().valueOf() / 1000 + 1000).toFixed();
 
   const tradeOrder = {
     marketIndex,
@@ -42,7 +42,7 @@ async function main(chainId: number) {
   };
   const compressedTradeOrder = await intentBuilder.buildTradeOrder(tradeOrder);
   const digest = await intentHandler.getDigest(tradeOrder);
-  const privateKey = process.env.TRADING_WALLET_PRIVATE_KEY!;
+  const privateKey = process.env.MAINNET_PRIVATE_KEY!;
   const rawSignature = new ethers.utils.SigningKey("0x" + privateKey).signDigest(digest);
   const signature = ethers.utils.solidityPack(
     ["bytes32", "bytes32", "uint8"],

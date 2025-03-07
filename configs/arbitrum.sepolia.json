@@ -22,7 +22,7 @@
     "trade": "0xFd89a05652492D748a94cD24c636e33054E9F4c2",
     "limitTrade": "0xF738a396c235Ab83bbfE114BdfFD7fC3689215fE",
     "tradeOrder": "0xa9A80dDb4C630De57eF6203575940d53f9674573",
-    "intentBuilder": "0x57086ef989B3707Bee64C83Caa539aE993158B09"
+    "intentBuilder": "0xa7D01695B0a5dc8354aD18ed17ac255136cF7543"
   },
   "services": {
     "crossMargin": "0xb4D3b20c2AF9dB32ef86f301F1CD4B5E92b1D1e1",

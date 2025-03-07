@@ -13,7 +13,7 @@ async function main(chainId: number) {
       index: 0,
       fromSize: 0,
       toSize: ethers.constants.MaxUint256,
-      minProfitDuration: 30,
+      minProfitDuration: 0,
     },
   ];
 
