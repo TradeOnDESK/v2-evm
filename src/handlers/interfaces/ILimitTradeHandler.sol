@@ -31,6 +31,7 @@ interface ILimitTradeHandler {
   error ILimitTradeHandler_PriceSlippage();
   error ILimitTradeHandler_MaxPositionSize();
   error ILimitTradeHandler_MaxTradeSize();
+  error ILimitTradeHandler_NotWhitelistedOrNotOwner();
 
   /**
    * Enums
@@ -159,11 +160,7 @@ interface ILimitTradeHandler {
 
   function cancelOrder(address _mainAccount, uint8 _subAccountId, uint256 _orderIndex) external;
 
-  function batchCancelOrders(
-    address _mainAccount,
-    uint8 _subAccountId,
-    uint256[] calldata _orderIndices
-  ) external;
+  function batchCancelOrders(address _mainAccount, uint8 _subAccountId, uint256[] calldata _orderIndices) external;
 
   function updateOrder(
     address _mainAccount,

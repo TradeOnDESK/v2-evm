@@ -230,8 +230,9 @@ contract LimitTradeHandler is OwnableUpgradeable, ReentrancyGuardUpgradeable, IL
     _;
   }
 
+  // Only whitelisted addresses or owner can be able to execute limit orders
   modifier onlyOrderExecutorOrOwner() {
-    if (!orderExecutors[msg.sender] && msg.sender != owner()) revert ILimitTradeHandler_NotWhitelisted();
+    if (!orderExecutors[msg.sender] && msg.sender != owner()) revert ILimitTradeHandler_NotWhitelistedOrNotOwner();
     _;
   }
 

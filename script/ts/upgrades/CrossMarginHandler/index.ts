@@ -1,4 +1,4 @@
-import { ethers, tenderly, upgrades } from "hardhat";
+import { ethers, run, upgrades } from "hardhat";
 import { loadConfig } from "../../utils/config";
 import signers from "../../entities/signers";
 import ProxyAdminWrapper from "../../wrappers/ProxyAdminWrapper";
@@ -19,10 +19,10 @@ async function main() {
   console.log(`[upgrades/CrossMarginHandler] New CrossMarginHandler Implementation address: ${newImplementation}`);
   await proxyAdminWrapper.upgrade(TARGET_ADDRESS, newImplementation.toString());
 
-  console.log(`[upgrades/CrossMarginHandler] Verify contract on Tenderly`);
-  await tenderly.verify({
+  console.log(`[upgrades/CrossMarginHandler] Verify contract`);
+  await run("verify:verify", {
     address: newImplementation.toString(),
-    name: "CrossMarginHandler",
+    constructorArguments: [],
   });
 }
 
