@@ -763,7 +763,7 @@ contract ConfigStorage is IConfigStorage, OwnableUpgradeable {
     uint256[] memory marketIndexes,
     uint256[] memory makerFees,
     uint256[] memory takerFees
-  ) external onlyOwner {
+  ) external onlyWhitelistedExecutor {
     if (marketIndexes.length != makerFees.length || makerFees.length != takerFees.length)
       revert IConfigStorage_BadLen();
     uint256 length = marketIndexes.length;

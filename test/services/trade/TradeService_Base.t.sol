@@ -55,6 +55,8 @@ abstract contract TradeService_Base is BaseTest {
     vaultStorage.setServiceExecutors(address(tradeService), true);
     vaultStorage.setServiceExecutors(address(tradeHelper), true);
     vaultStorage.setServiceExecutors(address(this), true);
+
+    configStorage.setConfigExecutor(address(this), true);
   }
 
   function getSubAccount(address _account, uint8 _subAccountId) internal pure returns (address) {
