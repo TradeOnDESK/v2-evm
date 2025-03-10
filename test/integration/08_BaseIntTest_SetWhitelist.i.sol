@@ -46,6 +46,8 @@ abstract contract BaseIntTest_SetWhitelist is BaseIntTest_SetHLPTokens {
 
     configStorage.setServiceExecutors(_contractAddresses, _executorAddresses, _isServiceExecutors);
 
+    configStorage.setConfigExecutor(address(this), true);
+
     pyth.setUpdater(address(crossMarginHandler), true);
     pyth.setUpdater(address(liquidityHandler), true);
     pyth.setUpdater(address(limitTradeHandler), true);
