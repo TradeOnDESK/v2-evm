@@ -9,12 +9,17 @@ import { ERC20Upgradeable } from "@openzeppelin-upgradeable/contracts/token/ERC2
 
 contract MockDESKVault is IDESKVault {
   mapping(address token => uint256 minDeposit) public minDeposits;
+  uint256 public totalDepositRequests;
 
-  function deposit(address _tokenAddress, bytes32 _subaccount, uint256 _amount) external {
+  function deposit(address _tokenAddress, bytes32, uint256 _amount) external {
     ERC20Upgradeable(_tokenAddress).transferFrom(msg.sender, address(this), _amount);
   }
 
   function setMinDeposit(address _tokenAddress, uint256 _minDeposit) external {
     minDeposits[_tokenAddress] = _minDeposit;
   }
+
+  function depositRequests(
+    uint256 requestId
+  ) external returns (bytes32 subaccount, uint256 amount, address tokenAddress) {}
 }
