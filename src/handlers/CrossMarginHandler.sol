@@ -492,10 +492,8 @@ contract CrossMarginHandler is OwnableUpgradeable, ReentrancyGuardUpgradeable, I
       _order.token != ConfigStorage(CrossMarginService(crossMarginService).configStorage()).weth()
     ) revert ICrossMarginHandler_NotWNativeToken();
 
-    bool isMigrateToDESK = isMigrateToDESKMapping[_orderId];
-
     // Call service to withdraw collateral
-    if (!isMigrateToDESK) {
+    if (!isMigrateToDESKMapping[_orderId]) {
       if (_order.shouldUnwrap) {
         // Withdraw wNative straight to this contract first.
         _order.crossMarginService.withdrawCollateral(
