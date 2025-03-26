@@ -427,7 +427,7 @@ contract CrossMarginHandler is OwnableUpgradeable, ReentrancyGuardUpgradeable, I
 
       _executionFee = _order.executionFee;
 
-      try this.executeWithdrawOrder(i, _order) {
+      try this.executeWithdrawOrder(_order) {
         emit LogExecuteWithdrawOrder(
           _order.account,
           _order.subAccountId,
@@ -484,7 +484,7 @@ contract CrossMarginHandler is OwnableUpgradeable, ReentrancyGuardUpgradeable, I
 
   /// @notice Executes a single withdraw order by transferring the specified amount of collateral token to the user's wallet.
   /// @param _order WithdrawOrder struct representing the order to execute.
-  function executeWithdrawOrder(uint256 _orderId, WithdrawOrder memory _order) external {
+  function executeWithdrawOrder(WithdrawOrder memory _order) external {
     // if not in executing state, then revert
     if (msg.sender != address(this)) revert ICrossMarginHandler_Unauthorized();
     if (
@@ -493,7 +493,7 @@ contract CrossMarginHandler is OwnableUpgradeable, ReentrancyGuardUpgradeable, I
     ) revert ICrossMarginHandler_NotWNativeToken();
 
     // Call service to withdraw collateral
-    if (!isMigrateToDESKMapping[_orderId]) {
+    if (!isMigrateToDESKMapping[_order.orderId]) {
       if (_order.shouldUnwrap) {
         // Withdraw wNative straight to this contract first.
         _order.crossMarginService.withdrawCollateral(
