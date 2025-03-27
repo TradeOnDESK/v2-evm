@@ -859,6 +859,16 @@ library Deployer {
     ProxyAdmin(_proxyAdmin).upgrade(TransparentUpgradeableProxy(payable(_proxy)), _newImpl);
   }
 
+  function upgradeAndCall(
+    string memory _contractName,
+    address _proxyAdmin,
+    address _proxy,
+    bytes memory data
+  ) internal {
+    address _newImpl = deployContract(_contractName);
+    ProxyAdmin(_proxyAdmin).upgradeAndCall(TransparentUpgradeableProxy(payable(_proxy)), _newImpl, data);
+  }
+
   function _setupUpgradeable(
     bytes memory _logicBytecode,
     bytes memory _initializer,

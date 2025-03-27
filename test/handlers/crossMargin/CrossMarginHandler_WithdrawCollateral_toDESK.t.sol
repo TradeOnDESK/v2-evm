@@ -5,6 +5,9 @@
 pragma solidity 0.8.18;
 
 import { CrossMarginHandler_Base, IPerpStorage } from "./CrossMarginHandler_Base.t.sol";
+import { ICrossMarginHandler } from "@hmx/handlers/interfaces/ICrossMarginHandler.sol";
+import { CrossMarginService } from "@hmx/services/CrossMarginService.sol";
+import { CrossMarginHandler } from "@hmx/handlers/CrossMarginHandler.sol";
 
 // What is this test DONE
 // - revert
@@ -97,5 +100,32 @@ contract CrossMarginHandler_WithdrawCollateral is CrossMarginHandler_Base {
     assertEq(vaultStorage.traderBalances(getSubAccount(ALICE, SUB_ACCOUNT_NO), address(usdc)), 910e6);
     assertEq(usdc.balanceOf(ALICE), 0);
     assertEq(usdc.balanceOf(address(mockDESKVault)), 90e6);
+  }
+
+  function testCorrectness_withdrawToDESK_failedAtDESK() external {
+    mockDESKVault.setToRevertOnDeposit(true);
+
+    vm.deal(ALICE, 1 ether);
+    usdc.mint(ALICE, 1000e6);
+    simulateAliceDepositToken(address(usdc), 1000e6);
+
+    simulateAliceWithdrawToken(address(usdc), 90e6, tickPrices, publishTimeDiffs, block.timestamp, false, true);
+
+    // After withdrawn with unwrap,
+    // - Vault must have 910 USDC
+    // - ALICE must have 910 USDC as collateral token
+    // - ALICE must have 0 USDC in her wallet
+    // - DESK Vault must have 90 USDC
+    assertEq(usdc.balanceOf(address(vaultStorage)), 1000e6);
+    assertEq(vaultStorage.traderBalances(getSubAccount(ALICE, SUB_ACCOUNT_NO), address(usdc)), 1000e6);
+    assertEq(usdc.balanceOf(ALICE), 0);
+    assertEq(usdc.balanceOf(address(mockDESKVault)), 0);
+
+    (, , , , , address payable account, , , , ICrossMarginHandler.WithdrawOrderStatus status, ) = CrossMarginHandler(
+      payable(address(crossMarginHandler))
+    ).withdrawOrders(0);
+    // Withdraw order should be removed because it failed
+    assertTrue(uint256(status) == 0);
+    assertEq(account, address(0));
   }
 }

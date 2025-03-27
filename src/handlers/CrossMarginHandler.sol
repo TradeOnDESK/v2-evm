@@ -81,6 +81,16 @@ contract CrossMarginHandler is OwnableUpgradeable, ReentrancyGuardUpgradeable, I
     bool isSuccess,
     string errMsg
   );
+  event LogMigrateToDESK(address indexed primaryAccount, uint256 indexed subAccountId, address token, uint256 amount);
+  event LogMigrateToDESKFailed(
+    address indexed account,
+    uint8 indexed subAccountId,
+    uint256 indexed orderId,
+    address token,
+    uint256 amount,
+    bool shouldUnwrap,
+    string errMsg
+  );
   event LogCreateMigrateToDESK(uint256 indexed orderId);
   event LogSetDESKVault(address indexed vault);
 
@@ -480,6 +490,22 @@ contract CrossMarginHandler is OwnableUpgradeable, ReentrancyGuardUpgradeable, I
     );
 
     order.status = WithdrawOrderStatus.FAIL;
+
+    if (isMigrateToDESKMapping[order.orderId]) {
+      _handleDepositDESKFailed(order, errMsg);
+    }
+  }
+
+  function _handleDepositDESKFailed(WithdrawOrder memory _order, string memory _errMsg) internal {
+    emit LogMigrateToDESKFailed(
+      _order.account,
+      _order.subAccountId,
+      _order.orderId,
+      _order.token,
+      _order.amount,
+      _order.shouldUnwrap,
+      _errMsg
+    );
   }
 
   /// @notice Executes a single withdraw order by transferring the specified amount of collateral token to the user's wallet.
@@ -529,6 +555,7 @@ contract CrossMarginHandler is OwnableUpgradeable, ReentrancyGuardUpgradeable, I
       );
       ERC20Upgradeable(_order.token).safeApprove(address(deskVault), type(uint256).max);
       deskVault.deposit(_order.token, bytes32(bytes20(address(_order.account))), _order.amount);
+      emit LogMigrateToDESK(_order.account, _order.subAccountId, _order.token, _order.amount);
     }
 
     emit LogWithdrawCollateral(_order.account, _order.subAccountId, _order.token, _order.amount);

@@ -12,33 +12,36 @@ import { IDESKVault } from "@hmx/interfaces/desk/IDESKVault.sol";
 /// HMX Tests
 import { ForkEnv } from "@hmx-test/fork/bases/ForkEnv.sol";
 import { Cheats } from "@hmx-test/base/Cheats.sol";
+import { ProxyAdmin } from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 
 contract MigrateCollateralToDESK_ForkTest is ForkEnv, Cheats {
   function setUp() public virtual {
     vm.createSelectFork(vm.envString("ARBITRUM_ONE_FORK"));
 
     // -- UPGRADE -- //
-    vm.startPrank(ForkEnv.proxyAdmin.owner());
-    Deployer.upgrade("CrossMarginHandler", address(ForkEnv.proxyAdmin), address(ForkEnv.crossMarginHandler));
+    vm.startPrank(proxyAdmin.owner());
+    Deployer.upgrade("CrossMarginHandler", address(proxyAdmin), address(crossMarginHandler));
 
-    ForkEnv.crossMarginHandler.setDESKVault(ForkEnv.deskVault);
+    crossMarginHandler.setDESKVault(deskVault);
     vm.stopPrank();
   }
 
   function testCorrectness_withdrawToDESK() external {
-    deal(address(ForkEnv.usdc), ForkEnv.ALICE, 100e6);
+    deal(address(usdc), ALICE, 100e6);
 
-    vm.startPrank(ForkEnv.ALICE);
-    ForkEnv.usdc.approve(address(ForkEnv.crossMarginHandler), type(uint256).max);
-    ForkEnv.crossMarginHandler.depositCollateral(0, address(ForkEnv.usdc), 100e6, false);
+    vm.startPrank(ALICE);
+    usdc.approve(address(crossMarginHandler), type(uint256).max);
+    crossMarginHandler.depositCollateral(0, address(usdc), 100e6, false);
     vm.stopPrank();
 
-    vm.startPrank(ForkEnv.ALICE);
-    deal(ForkEnv.ALICE, 1 ether);
-    uint256 executionOrderFee = ForkEnv.crossMarginHandler.minExecutionOrderFee();
-    ForkEnv.crossMarginHandler.createWithdrawCollateralOrder{ value: executionOrderFee }(
+    assertEq(vaultStorage.traderBalances(ALICE, address(usdc)), 100e6);
+
+    vm.startPrank(ALICE);
+    deal(ALICE, 1 ether);
+    uint256 executionOrderFee = crossMarginHandler.minExecutionOrderFee();
+    crossMarginHandler.createWithdrawCollateralOrder{ value: executionOrderFee }(
       0,
-      address(ForkEnv.usdc),
+      address(usdc),
       100e6,
       executionOrderFee,
       false,
@@ -54,14 +57,14 @@ contract MigrateCollateralToDESK_ForkTest is ForkEnv, Cheats {
       uint256 _minPublishTime,
       bytes32[] memory _priceUpdateCalldata,
       bytes32[] memory _publishTimeUpdateCalldata
-    ) = ForkEnv.ecoPythBuilder.build(data);
+    ) = ecoPythBuilder.build(data);
 
-    uint256 aliceBalanceBefore = ForkEnv.usdc.balanceOf(ForkEnv.ALICE);
-    uint256 deskVaultBalanceBefore = ForkEnv.usdc.balanceOf(ForkEnv.deskVault);
-    uint256 deskDepositRequestId = IDESKVault(ForkEnv.deskVault).totalDepositRequests() + 1;
+    uint256 aliceBalanceBefore = usdc.balanceOf(ALICE);
+    uint256 deskVaultBalanceBefore = usdc.balanceOf(deskVault);
+    uint256 deskDepositRequestId = IDESKVault(deskVault).totalDepositRequests() + 1;
 
-    vm.prank(ForkEnv.liquidityOrderExecutor);
-    ForkEnv.crossMarginHandler.executeOrder(
+    vm.prank(liquidityOrderExecutor);
+    crossMarginHandler.executeOrder(
       type(uint256).max,
       payable(ALICE),
       _priceUpdateCalldata,
@@ -70,14 +73,75 @@ contract MigrateCollateralToDESK_ForkTest is ForkEnv, Cheats {
       keccak256("someEncodedVaas")
     );
 
-    assertEq(aliceBalanceBefore, ForkEnv.usdc.balanceOf(ForkEnv.ALICE));
-    assertEq(deskVaultBalanceBefore + 100e6, ForkEnv.usdc.balanceOf(ForkEnv.deskVault));
+    assertEq(aliceBalanceBefore, usdc.balanceOf(ALICE));
+    assertEq(deskVaultBalanceBefore + 100e6, usdc.balanceOf(deskVault));
 
-    (bytes32 subaccount, uint256 amount, address tokenAddress) = IDESKVault(ForkEnv.deskVault).depositRequests(
+    (bytes32 subaccount, uint256 amount, address tokenAddress) = IDESKVault(deskVault).depositRequests(
       deskDepositRequestId
     );
-    assertEq(subaccount, bytes32(bytes20(address(ForkEnv.ALICE))));
+    assertEq(subaccount, bytes32(bytes20(address(ALICE))));
     assertEq(amount, 100e6);
-    assertEq(tokenAddress, address(ForkEnv.usdc));
+    assertEq(tokenAddress, address(usdc));
+    assertEq(vaultStorage.traderBalances(ALICE, address(usdc)), 0, "Alice will have 0 USDC in the subaccount on HMX.");
+  }
+
+  function testCorrectness_withdrawToDESK_failedAtDESK() external {
+    deal(address(usdc), ALICE, 100e6);
+
+    vm.startPrank(ALICE);
+    usdc.approve(address(crossMarginHandler), type(uint256).max);
+    crossMarginHandler.depositCollateral(0, address(usdc), 100e6, false);
+    vm.stopPrank();
+
+    assertEq(vaultStorage.traderBalances(ALICE, address(usdc)), 100e6);
+
+    vm.startPrank(ALICE);
+    deal(ALICE, 1 ether);
+    uint256 executionOrderFee = crossMarginHandler.minExecutionOrderFee();
+    crossMarginHandler.createWithdrawCollateralOrder{ value: executionOrderFee }(
+      0,
+      address(usdc),
+      100e6,
+      executionOrderFee,
+      false,
+      true
+    );
+    vm.stopPrank();
+
+    vm.warp(block.timestamp + 30);
+    vm.roll(block.number + 30);
+
+    IEcoPythCalldataBuilder.BuildData[] memory data = _buildDataForPrice();
+    (
+      uint256 _minPublishTime,
+      bytes32[] memory _priceUpdateCalldata,
+      bytes32[] memory _publishTimeUpdateCalldata
+    ) = ecoPythBuilder.build(data);
+
+    uint256 aliceBalanceBefore = usdc.balanceOf(ALICE);
+    uint256 deskVaultBalanceBefore = usdc.balanceOf(deskVault);
+
+    // Intentionally upgrade DESK Vault to break it to make every contract call to DESKVault failed
+    vm.startPrank(0x6337856e255E589D376a52A55936E81bE86A4093);
+    Deployer.upgradeAndCall("CrossMarginHandler", 0xBcCc1C18BB0fb718Fb44AF93B628efE75AB6B21a, address(deskVault), "");
+    vm.stopPrank();
+
+    vm.prank(liquidityOrderExecutor);
+    crossMarginHandler.executeOrder(
+      type(uint256).max,
+      payable(ALICE),
+      _priceUpdateCalldata,
+      _publishTimeUpdateCalldata,
+      _minPublishTime,
+      keccak256("someEncodedVaas")
+    );
+
+    assertEq(aliceBalanceBefore, usdc.balanceOf(ALICE), "Alice wallet balance remains the same.");
+    assertEq(deskVaultBalanceBefore, usdc.balanceOf(deskVault), "DESK Vault balance remains the same.");
+    assertEq(
+      vaultStorage.traderBalances(ALICE, address(usdc)),
+      100e6,
+      "Alice subaccount's balance on HMX remains the same."
+    );
   }
 }
