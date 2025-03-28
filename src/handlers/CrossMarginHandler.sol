@@ -662,6 +662,7 @@ contract CrossMarginHandler is OwnableUpgradeable, ReentrancyGuardUpgradeable, I
   }
 
   function setDESKVault(address _vault) external nonReentrant onlyOwner {
+    if (_vault == address(0)) revert ICrossMarginHandler_InvalidAddress();
     deskVault = IDESKVault(_vault);
     emit LogSetDESKVault(_vault);
   }
