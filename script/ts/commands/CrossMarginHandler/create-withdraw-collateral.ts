@@ -1,23 +1,33 @@
 import { Command } from "commander";
 import { loadConfig } from "../../utils/config";
 import signers from "../../entities/signers";
-import { CrossMarginHandler__factory, ERC20__factory } from "../../../../typechain";
+import { CrossMarginHandler__factory } from "../../../../typechain";
 import { ethers } from "ethers";
+import { OwnerWrapper } from "../../wrappers/OwnerWrapper";
 
 async function main(chainId: number) {
   const config = loadConfig(chainId);
   const signer = signers.deployer(chainId);
+  const ownerWrapper = new OwnerWrapper(chainId, signer);
 
-  const tokenAddress = config.tokens.deskUsdc;
-  const amountIn = ethers.utils.parseUnits("100", 6);
   const subAccountId = 0;
+  const token = config.tokens.deskUsdc;
+  const amount = ethers.utils.parseUnits("10", 6);
   const shouldWrap = false;
+  const isMigrateToDESK = true;
 
-  console.log("[CrossMarginHandler] depositCollateral...");
+  console.log("[commands/CrossMarginHandler] withdrawCollateral...");
   const handler = CrossMarginHandler__factory.connect(config.handlers.crossMargin, signer);
-  const token = ERC20__factory.connect(tokenAddress, signer);
-  await token.approve(handler.address, amountIn);
-  const tx = await handler.depositCollateral(subAccountId, tokenAddress, amountIn, shouldWrap);
+  const executionFee = await handler.minExecutionOrderFee();
+  const tx = await handler["createWithdrawCollateralOrder(uint8,address,uint256,uint256,bool,bool)"](
+    subAccountId,
+    token,
+    amount,
+    executionFee,
+    shouldWrap,
+    isMigrateToDESK,
+    { value: executionFee }
+  );
   console.log(`[CrossMarginHandler] Tx: ${tx.hash}`);
   await tx.wait(1);
   console.log("[CrossMarginHandler] Finished");

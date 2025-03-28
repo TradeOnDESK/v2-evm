@@ -7,8 +7,8 @@ import SafeWrapper from "../../wrappers/SafeWrapper";
 
 const inputs = [
   {
-    assetId: ethers.utils.formatBytes32String("WUSDM"),
-    pythPriceId: ethers.utils.formatBytes32String("WUSDM"),
+    assetId: ethers.utils.formatBytes32String("USDC-DESK"),
+    pythPriceId: ethers.utils.formatBytes32String("USDC"),
     inverse: false,
   },
 ];

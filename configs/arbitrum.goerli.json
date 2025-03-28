@@ -75,7 +75,8 @@
     "usdcNative": "0x536F8241be9Bb5010759648c96E4E1E6Ead4ad0f",
     "pyth": "",
     "wusdm": "",
-    "link": ""
+    "link": "",
+    "deskUsdc": ""
   },
   "vendors": {
     "gmx": {

@@ -13,7 +13,7 @@ async function main(chainId: number) {
 
   const inputs = [
     {
-      tokenAddress: config.tokens.link,
+      tokenAddress: "0xb255eea3d61fcd3f7ea56f24da0664e06fddb9f5",
       config: {
         targetWeight: ethers.utils.parseEther("0"), // 0%
         bufferLiquidity: 0,

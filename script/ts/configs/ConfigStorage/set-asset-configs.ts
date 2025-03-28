@@ -13,12 +13,12 @@ async function main(chainId: number) {
 
   const inputs = [
     {
-      assetId: ethers.utils.formatBytes32String("LINK"),
+      assetId: ethers.utils.formatBytes32String("USDC-DESK"),
       config: {
-        assetId: ethers.utils.formatBytes32String("LINK"),
-        tokenAddress: config.tokens.link,
-        decimals: 18,
-        isStableCoin: false,
+        assetId: ethers.utils.formatBytes32String("USDC-DESK"),
+        tokenAddress: "0xb255eea3d61fcd3f7ea56f24da0664e06fddb9f5",
+        decimals: 6,
+        isStableCoin: true,
       },
     },
   ];
