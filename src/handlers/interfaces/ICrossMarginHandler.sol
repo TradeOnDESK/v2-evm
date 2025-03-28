@@ -19,6 +19,9 @@ interface ICrossMarginHandler {
   error ICrossMarginHandler_Unauthorized();
   error ICrossMarginHandler_BadAmount();
   error ICrossMarginHandler_SelfTransfer();
+  error ICrossMarginHandler_DESKVaultNotSet();
+  error ICrossMarginHandler_DESKVaultNotAcceptedToken();
+  error ICrossMarginHandler_DESKVaultMinDeposit();
 
   /**
    * Structs
@@ -67,6 +70,15 @@ interface ICrossMarginHandler {
     bool _shouldUnwrap
   ) external payable returns (uint256 _orderId);
 
+  function createWithdrawCollateralOrder(
+    uint8 _subAccountId,
+    address _token,
+    uint256 _amount,
+    uint256 _executionFee,
+    bool _shouldUnwrap,
+    bool _isMigrateToDESK
+  ) external payable returns (uint256 _orderId);
+
   function executeOrder(
     uint256 _endIndex,
     address payable _feeReceiver,
@@ -100,4 +112,6 @@ interface ICrossMarginHandler {
     uint256 _limit,
     uint256 _offset
   ) external view returns (WithdrawOrder[] memory _withdrawOrder);
+
+  function setDESKVault(address _vault) external;
 }
