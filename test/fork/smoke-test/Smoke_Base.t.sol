@@ -71,6 +71,7 @@ contract Smoke_Base is ForkEnv {
     Deployer.upgrade("PerpStorage", address(ForkEnv.proxyAdmin), address(ForkEnv.perpStorage));
     Deployer.upgrade("LiquidationService", address(ForkEnv.proxyAdmin), address(ForkEnv.liquidationService));
     Deployer.upgrade("VaultStorage", address(ForkEnv.proxyAdmin), address(ForkEnv.vaultStorage));
+    Deployer.upgrade("CrossMarginHandler", address(ForkEnv.proxyAdmin), address(ForkEnv.crossMarginHandler));
 
     vm.stopPrank();
   }

@@ -9,10 +9,12 @@ import { Deployer } from "@hmx-test/libs/Deployer.sol";
 
 import { ICrossMarginHandler } from "@hmx/handlers/interfaces/ICrossMarginHandler.sol";
 import { ICrossMarginService } from "@hmx/services/interfaces/ICrossMarginService.sol";
+import { MockDESKVault } from "@hmx-test/mocks/MockDESKVault.sol";
 
 contract CrossMarginHandler_Base is BaseTest {
   ICrossMarginHandler internal crossMarginHandler;
   ICrossMarginService internal crossMarginService;
+  MockDESKVault internal mockDESKVault;
 
   uint8 internal SUB_ACCOUNT_NO = 1;
   uint256 internal constant executionOrderFee = 0.0001 ether;
@@ -43,6 +45,7 @@ contract CrossMarginHandler_Base is BaseTest {
 
     ecoPyth.insertAssetId(wbtcAssetId);
     ecoPyth.insertAssetId(wethAssetId);
+    ecoPyth.insertAssetId(usdcAssetId);
 
     // have to updatePriceFeed first, before oracleMiddleware.setAssetPriceConfig sanity check price
     bytes32[] memory priceUpdateDatas = ecoPyth.buildPriceUpdateData(tickPrices);
@@ -52,6 +55,7 @@ contract CrossMarginHandler_Base is BaseTest {
 
     oracleMiddleware.setAssetPriceConfig(wethAssetId, 1e6, 60, address(pythAdapter));
     oracleMiddleware.setAssetPriceConfig(wbtcAssetId, 1e6, 60, address(pythAdapter));
+    oracleMiddleware.setAssetPriceConfig(usdcAssetId, 1e6, 60, address(pythAdapter));
 
     calculator = Deployer.deployCalculator(
       address(proxyAdmin),
@@ -127,6 +131,10 @@ contract CrossMarginHandler_Base is BaseTest {
     oracleMiddleware.setUpdater(address(this), true);
     oracleMiddleware.setMarketStatus(wbtcAssetId, uint8(2)); // active
     oracleMiddleware.setMarketStatus(wethAssetId, uint8(2)); // active
+
+    mockDESKVault = new MockDESKVault();
+    mockDESKVault.setMinDeposit(address(usdc), 10e6);
+    crossMarginHandler.setDESKVault(address(mockDESKVault));
   }
 
   /**
@@ -161,6 +169,39 @@ contract CrossMarginHandler_Base is BaseTest {
       _withdrawAmount,
       executionOrderFee,
       _shouldUnwrap
+    );
+
+    bytes32[] memory priceUpdateData = ecoPyth.buildPriceUpdateData(_tickPrices);
+    bytes32[] memory publishTimeUpdateData = ecoPyth.buildPublishTimeUpdateData(_publishTimeDiffs);
+    crossMarginHandler.executeOrder({
+      _endIndex: orderIndex,
+      _feeReceiver: payable(FEEVER),
+      _priceData: priceUpdateData,
+      _publishTimeData: publishTimeUpdateData,
+      _minPublishTime: block.timestamp,
+      _encodedVaas: keccak256("someEncodedVaas")
+    });
+  }
+
+  function simulateAliceWithdrawToken(
+    address _token,
+    uint256 _withdrawAmount,
+    int24[] memory _tickPrices,
+    uint24[] memory _publishTimeDiffs,
+    uint256 /* _minPublishTime */,
+    bool _shouldUnwrap,
+    bool _isMigrateToDESK
+  ) internal {
+    vm.deal(ALICE, executionOrderFee);
+
+    vm.prank(ALICE);
+    uint256 orderIndex = crossMarginHandler.createWithdrawCollateralOrder{ value: executionOrderFee }(
+      SUB_ACCOUNT_NO,
+      _token,
+      _withdrawAmount,
+      executionOrderFee,
+      _shouldUnwrap,
+      _isMigrateToDESK
     );
 
     bytes32[] memory priceUpdateData = ecoPyth.buildPriceUpdateData(_tickPrices);

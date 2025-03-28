@@ -9,7 +9,7 @@ async function main(chainId: number) {
 
   const inputs = [
     {
-      executorAddress: "0x6629eC35c8Aa279BA45Dbfb575c728d3812aE31a",
+      executorAddress: "0x6409ba830719cd0fE27ccB3051DF1b399C90df4a", // Multu-sig
       isServiceExecutor: true,
     },
   ];

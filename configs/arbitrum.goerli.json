@@ -117,6 +117,9 @@
     },
     "oneInch": {
       "router": ""
+    },
+    "desk": {
+      "vault": ""
     }
   },
   "strategies": {
