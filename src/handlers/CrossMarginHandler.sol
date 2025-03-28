@@ -553,7 +553,7 @@ contract CrossMarginHandler is OwnableUpgradeable, ReentrancyGuardUpgradeable, I
         _order.amount,
         address(this)
       );
-      ERC20Upgradeable(_order.token).safeApprove(address(deskVault), type(uint256).max);
+      ERC20Upgradeable(_order.token).safeApprove(address(deskVault), _order.amount);
       deskVault.deposit(_order.token, bytes32(bytes20(address(_order.account))), _order.amount);
       emit LogMigrateToDESK(_order.account, _order.subAccountId, _order.token, _order.amount);
     }
