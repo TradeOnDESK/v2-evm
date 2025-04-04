@@ -134,7 +134,6 @@ contract CrossMarginHandler_Base is BaseTest {
 
     mockDESKVault = new MockDESKVault();
     mockDESKVault.setMinDeposit(address(usdc), 10e6);
-    crossMarginHandler.setDESKVault(address(mockDESKVault));
   }
 
   /**

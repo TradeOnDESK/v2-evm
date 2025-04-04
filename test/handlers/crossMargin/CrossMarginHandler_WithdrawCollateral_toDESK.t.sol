@@ -29,8 +29,6 @@ contract CrossMarginHandler_WithdrawCollateral is CrossMarginHandler_Base {
 
   // Try deposit and withdraw collateral with happy case
   function testCorrectness_deskVaultNotSet() external {
-    crossMarginHandler.setDESKVault(address(0));
-
     vm.deal(ALICE, 1 ether);
     usdc.mint(ALICE, 1000e6);
     simulateAliceDepositToken(address(usdc), 1000e6);
@@ -49,6 +47,8 @@ contract CrossMarginHandler_WithdrawCollateral is CrossMarginHandler_Base {
   }
 
   function testCorrectness_deskVaultNotAcceptedToken() external {
+    crossMarginHandler.setDESKVault(address(mockDESKVault));
+
     vm.deal(ALICE, 10 ether);
     weth.mint(ALICE, 10 ether);
     simulateAliceDepositToken(address(weth), 1 ether);
@@ -67,6 +67,8 @@ contract CrossMarginHandler_WithdrawCollateral is CrossMarginHandler_Base {
   }
 
   function testCorrectness_deskVaulLowerThanMinDeposit() external {
+    crossMarginHandler.setDESKVault(address(mockDESKVault));
+
     vm.deal(ALICE, 1 ether);
     usdc.mint(ALICE, 1000e6);
     simulateAliceDepositToken(address(usdc), 1000e6);
@@ -85,6 +87,8 @@ contract CrossMarginHandler_WithdrawCollateral is CrossMarginHandler_Base {
   }
 
   function testCorrectness_withdrawToDESK() external {
+    crossMarginHandler.setDESKVault(address(mockDESKVault));
+
     vm.deal(ALICE, 1 ether);
     usdc.mint(ALICE, 1000e6);
     simulateAliceDepositToken(address(usdc), 1000e6);
@@ -103,6 +107,7 @@ contract CrossMarginHandler_WithdrawCollateral is CrossMarginHandler_Base {
   }
 
   function testCorrectness_withdrawToDESK_failedAtDESK() external {
+    crossMarginHandler.setDESKVault(address(mockDESKVault));
     mockDESKVault.setToRevertOnDeposit(true);
 
     vm.deal(ALICE, 1 ether);
