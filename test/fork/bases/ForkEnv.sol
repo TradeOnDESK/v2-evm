@@ -208,6 +208,8 @@ abstract contract ForkEnv is Test {
   IERC20 internal gmBTCUSD = IERC20(getAddress(".tokens.gmBTCUSD"));
   IERC20 internal gmETHUSD = IERC20(getAddress(".tokens.gmETHUSD"));
 
+  address internal deskVault = 0x255659CaC93868AAf7AFcfB3F862AC300E3697B4;
+
   function _buildDataForPrice() public view returns (IEcoPythCalldataBuilder.BuildData[] memory data) {
     bytes32[] memory pythRes = ForkEnv.ecoPyth2.getAssetIds();
 

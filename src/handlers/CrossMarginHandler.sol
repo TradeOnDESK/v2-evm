@@ -19,6 +19,7 @@ import { IWNative } from "@hmx/interfaces/IWNative.sol";
 import { VaultStorage } from "@hmx/storages/VaultStorage.sol";
 import { ConfigStorage } from "@hmx/storages/ConfigStorage.sol";
 import { HMXLib } from "@hmx/libraries/HMXLib.sol";
+import { IDESKVault } from "@hmx/interfaces/desk/IDESKVault.sol";
 
 /// @title CrossMarginHandler
 /// @notice This contract handles the deposit and withdrawal of collateral tokens for the Cross Margin Trading module.
@@ -80,6 +81,18 @@ contract CrossMarginHandler is OwnableUpgradeable, ReentrancyGuardUpgradeable, I
     bool isSuccess,
     string errMsg
   );
+  event LogMigrateToDESK(address indexed primaryAccount, uint256 indexed subAccountId, address token, uint256 amount);
+  event LogMigrateToDESKFailed(
+    address indexed account,
+    uint8 indexed subAccountId,
+    uint256 indexed orderId,
+    address token,
+    uint256 amount,
+    bool shouldUnwrap,
+    string errMsg
+  );
+  event LogCreateMigrateToDESK(uint256 indexed orderId);
+  event LogSetDESKVault(address indexed vault);
 
   /**
    * Constants
@@ -99,6 +112,8 @@ contract CrossMarginHandler is OwnableUpgradeable, ReentrancyGuardUpgradeable, I
   mapping(address => WithdrawOrder[]) public subAccountExecutedWithdrawOrders; // subAccount -> executed orders
   mapping(address => bool) public orderExecutors; // address -> flag to execute
   mapping(address user => bool isBanned) banlist;
+  mapping(uint256 orderId => bool isMigrateToDESK) isMigrateToDESKMapping;
+  IDESKVault public deskVault;
 
   /// @notice Initializes the CrossMarginHandler contract with the provided configuration parameters.
   /// @param _crossMarginService Address of the CrossMarginService contract.
@@ -251,6 +266,16 @@ contract CrossMarginHandler is OwnableUpgradeable, ReentrancyGuardUpgradeable, I
    * Withdraw Collateral
    */
 
+  function createWithdrawCollateralOrder(
+    uint8 _subAccountId,
+    address _token,
+    uint256 _amount,
+    uint256 _executionFee,
+    bool _shouldUnwrap
+  ) external payable returns (uint256 _orderId) {
+    return createWithdrawCollateralOrder(_subAccountId, _token, _amount, _executionFee, _shouldUnwrap, false);
+  }
+
   /// @notice Creates a new withdraw order to withdraw the specified amount of collateral token from the user's sub-account.
   /// @param _subAccountId ID of the user's sub-account.
   /// @param _token Address of the collateral token to withdraw.
@@ -263,14 +288,27 @@ contract CrossMarginHandler is OwnableUpgradeable, ReentrancyGuardUpgradeable, I
     address _token,
     uint256 _amount,
     uint256 _executionFee,
-    bool _shouldUnwrap
-  ) external payable nonReentrant onlyAcceptedToken(_token) returns (uint256 _orderId) {
+    bool _shouldUnwrap,
+    bool _isMigrateToDESK
+  ) public payable nonReentrant onlyAcceptedToken(_token) returns (uint256 _orderId) {
     if (_amount == 0) revert ICrossMarginHandler_BadAmount();
     if (_executionFee < minExecutionOrderFee) revert ICrossMarginHandler_InsufficientExecutionFee();
     if (msg.value != _executionFee) revert ICrossMarginHandler_InCorrectValueTransfer();
     if (_shouldUnwrap && _token != ConfigStorage(CrossMarginService(crossMarginService).configStorage()).weth())
       revert ICrossMarginHandler_NotWNativeToken();
     if (banlist[msg.sender]) revert ICrossMarginHandler_Unauthorized();
+    if (_isMigrateToDESK) {
+      if (address(deskVault) == address(0)) {
+        revert ICrossMarginHandler_DESKVaultNotSet();
+      }
+      uint256 _minDeposit = deskVault.minDeposits(_token);
+      if (_minDeposit == 0) {
+        revert ICrossMarginHandler_DESKVaultNotAcceptedToken();
+      }
+      if (_minDeposit > _amount) {
+        revert ICrossMarginHandler_DESKVaultMinDeposit();
+      }
+    }
 
     // convert native to WNative (including executionFee)
     _transferInETH();
@@ -292,6 +330,11 @@ contract CrossMarginHandler is OwnableUpgradeable, ReentrancyGuardUpgradeable, I
         status: WithdrawOrderStatus.PENDING
       })
     );
+
+    if (_isMigrateToDESK) {
+      isMigrateToDESKMapping[_orderId] = true;
+      emit LogCreateMigrateToDESK(_orderId);
+    }
 
     emit LogCreateWithdrawOrder(msg.sender, _subAccountId, _orderId, _token, _amount, _executionFee, _shouldUnwrap);
     return _orderId;
@@ -447,6 +490,22 @@ contract CrossMarginHandler is OwnableUpgradeable, ReentrancyGuardUpgradeable, I
     );
 
     order.status = WithdrawOrderStatus.FAIL;
+
+    if (isMigrateToDESKMapping[order.orderId]) {
+      _handleDepositDESKFailed(order, errMsg);
+    }
+  }
+
+  function _handleDepositDESKFailed(WithdrawOrder memory _order, string memory _errMsg) internal {
+    emit LogMigrateToDESKFailed(
+      _order.account,
+      _order.subAccountId,
+      _order.orderId,
+      _order.token,
+      _order.amount,
+      _order.shouldUnwrap,
+      _errMsg
+    );
   }
 
   /// @notice Executes a single withdraw order by transferring the specified amount of collateral token to the user's wallet.
@@ -460,8 +519,33 @@ contract CrossMarginHandler is OwnableUpgradeable, ReentrancyGuardUpgradeable, I
     ) revert ICrossMarginHandler_NotWNativeToken();
 
     // Call service to withdraw collateral
-    if (_order.shouldUnwrap) {
-      // Withdraw wNative straight to this contract first.
+    if (!isMigrateToDESKMapping[_order.orderId]) {
+      if (_order.shouldUnwrap) {
+        // Withdraw wNative straight to this contract first.
+        _order.crossMarginService.withdrawCollateral(
+          _order.account,
+          _order.subAccountId,
+          _order.token,
+          _order.amount,
+          address(this)
+        );
+        // Then we unwrap the wNative token. The receiving amount should be the exact same as _amount. (No fee deducted when withdraw)
+        IWNative(_order.token).withdraw(_order.amount);
+
+        // slither-disable-next-line arbitrary-send-eth
+        payable(_order.account).transfer(_order.amount);
+      } else {
+        // Withdraw _token straight to the user
+        _order.crossMarginService.withdrawCollateral(
+          _order.account,
+          _order.subAccountId,
+          _order.token,
+          _order.amount,
+          _order.account
+        );
+      }
+    } else {
+      // Migrate to DESK
       _order.crossMarginService.withdrawCollateral(
         _order.account,
         _order.subAccountId,
@@ -469,20 +553,9 @@ contract CrossMarginHandler is OwnableUpgradeable, ReentrancyGuardUpgradeable, I
         _order.amount,
         address(this)
       );
-      // Then we unwrap the wNative token. The receiving amount should be the exact same as _amount. (No fee deducted when withdraw)
-      IWNative(_order.token).withdraw(_order.amount);
-
-      // slither-disable-next-line arbitrary-send-eth
-      payable(_order.account).transfer(_order.amount);
-    } else {
-      // Withdraw _token straight to the user
-      _order.crossMarginService.withdrawCollateral(
-        _order.account,
-        _order.subAccountId,
-        _order.token,
-        _order.amount,
-        _order.account
-      );
+      ERC20Upgradeable(_order.token).safeIncreaseAllowance(address(deskVault), _order.amount);
+      deskVault.deposit(_order.token, bytes32(bytes20(address(_order.account))), _order.amount);
+      emit LogMigrateToDESK(_order.account, _order.subAccountId, _order.token, _order.amount);
     }
 
     emit LogWithdrawCollateral(_order.account, _order.subAccountId, _order.token, _order.amount);
@@ -586,6 +659,12 @@ contract CrossMarginHandler is OwnableUpgradeable, ReentrancyGuardUpgradeable, I
   function setOrderExecutor(address _executor, bool _isAllow) external nonReentrant onlyOwner {
     orderExecutors[_executor] = _isAllow;
     emit LogSetOrderExecutor(_executor, _isAllow);
+  }
+
+  function setDESKVault(address _vault) external nonReentrant onlyOwner {
+    if (_vault == address(0)) revert ICrossMarginHandler_InvalidAddress();
+    deskVault = IDESKVault(_vault);
+    emit LogSetDESKVault(_vault);
   }
 
   /**
