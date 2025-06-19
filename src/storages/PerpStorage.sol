@@ -25,12 +25,6 @@ contract PerpStorage is OwnableUpgradeable, ReentrancyGuardUpgradeable, IPerpSto
   }
 
   /**
-   * Events
-   */
-  event LogSetServiceExecutor(address indexed executorAddress, bool isServiceExecutor);
-  event LogSetMovingWindowConfig(uint256 length, uint256 interval);
-
-  /**
    * States
    */
   GlobalState public globalState; // global state that accumulative value from all markets
@@ -191,6 +185,27 @@ contract PerpStorage is OwnableUpgradeable, ReentrancyGuardUpgradeable, IPerpSto
     emit LogSetMovingWindowConfig(length, interval);
     movingWindowLength = length;
     movingWindowInterval = interval;
+  }
+
+  function setFundingRate(
+    uint256[] calldata _marketIndexes,
+    int256[] calldata _fundingRates
+  ) external onlyOwner nonReentrant {
+    if (_marketIndexes.length != _fundingRates.length) revert IPerpStorage_BadArrayLength();
+
+    for (uint256 i = 0; i < _marketIndexes.length; ) {
+      uint256 marketIndex = _marketIndexes[i];
+      int256 fundingRate = _fundingRates[i];
+
+      markets[marketIndex].currentFundingRate = fundingRate;
+      markets[marketIndex].lastFundingTime = block.timestamp;
+
+      emit LogSetFundingRate(marketIndex, fundingRate);
+
+      unchecked {
+        ++i;
+      }
+    }
   }
 
   function _setServiceExecutor(address _executorAddress, bool _isServiceExecutor) internal {
