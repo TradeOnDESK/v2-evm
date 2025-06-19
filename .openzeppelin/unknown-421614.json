@@ -8163,7 +8163,7 @@
             "label": "globalState",
             "offset": 0,
             "slot": "151",
-            "type": "t_struct(GlobalState)77211_storage",
+            "type": "t_struct(GlobalState)85220_storage",
             "contract": "PerpStorage",
             "src": "src/storages/PerpStorage.sol:36"
           },
@@ -8171,7 +8171,7 @@
             "label": "positions",
             "offset": 0,
             "slot": "152",
-            "type": "t_mapping(t_bytes32,t_struct(Position)77268_storage)",
+            "type": "t_mapping(t_bytes32,t_struct(Position)85277_storage)",
             "contract": "PerpStorage",
             "src": "src/storages/PerpStorage.sol:38"
           },
@@ -8195,7 +8195,7 @@
             "label": "markets",
             "offset": 0,
             "slot": "155",
-            "type": "t_mapping(t_uint256,t_struct(Market)77245_storage)",
+            "type": "t_mapping(t_uint256,t_struct(Market)85254_storage)",
             "contract": "PerpStorage",
             "src": "src/storages/PerpStorage.sol:41"
           },
@@ -8203,7 +8203,7 @@
             "label": "assetClasses",
             "offset": 0,
             "slot": "156",
-            "type": "t_mapping(t_uint256,t_struct(AssetClass)77222_storage)",
+            "type": "t_mapping(t_uint256,t_struct(AssetClass)85231_storage)",
             "contract": "PerpStorage",
             "src": "src/storages/PerpStorage.sol:42"
           },
@@ -8219,7 +8219,7 @@
             "label": "activePositionIds",
             "offset": 0,
             "slot": "158",
-            "type": "t_struct(Bytes32Set)10900_storage",
+            "type": "t_struct(Bytes32Set)11005_storage",
             "contract": "PerpStorage",
             "src": "src/storages/PerpStorage.sol:45"
           },
@@ -8227,7 +8227,7 @@
             "label": "activeSubAccounts",
             "offset": 0,
             "slot": "160",
-            "type": "t_struct(AddressSet)11021_storage",
+            "type": "t_struct(AddressSet)11126_storage",
             "contract": "PerpStorage",
             "src": "src/storages/PerpStorage.sol:46"
           },
@@ -8305,7 +8305,7 @@
             "label": "mapping(address => uint256)",
             "numberOfBytes": "32"
           },
-          "t_mapping(t_bytes32,t_struct(Position)77268_storage)": {
+          "t_mapping(t_bytes32,t_struct(Position)85277_storage)": {
             "label": "mapping(bytes32 => struct IPerpStorage.Position)",
             "numberOfBytes": "32"
           },
@@ -8317,11 +8317,11 @@
             "label": "mapping(uint256 => mapping(uint256 => uint256))",
             "numberOfBytes": "32"
           },
-          "t_mapping(t_uint256,t_struct(AssetClass)77222_storage)": {
+          "t_mapping(t_uint256,t_struct(AssetClass)85231_storage)": {
             "label": "mapping(uint256 => struct IPerpStorage.AssetClass)",
             "numberOfBytes": "32"
           },
-          "t_mapping(t_uint256,t_struct(Market)77245_storage)": {
+          "t_mapping(t_uint256,t_struct(Market)85254_storage)": {
             "label": "mapping(uint256 => struct IPerpStorage.Market)",
             "numberOfBytes": "32"
           },
@@ -8329,19 +8329,19 @@
             "label": "mapping(uint256 => uint256)",
             "numberOfBytes": "32"
           },
-          "t_struct(AddressSet)11021_storage": {
+          "t_struct(AddressSet)11126_storage": {
             "label": "struct EnumerableSet.AddressSet",
             "members": [
               {
                 "label": "_inner",
-                "type": "t_struct(Set)10706_storage",
+                "type": "t_struct(Set)10811_storage",
                 "offset": 0,
                 "slot": "0"
               }
             ],
             "numberOfBytes": "64"
           },
-          "t_struct(AssetClass)77222_storage": {
+          "t_struct(AssetClass)85231_storage": {
             "label": "struct IPerpStorage.AssetClass",
             "members": [
               {
@@ -8377,19 +8377,19 @@
             ],
             "numberOfBytes": "160"
           },
-          "t_struct(Bytes32Set)10900_storage": {
+          "t_struct(Bytes32Set)11005_storage": {
             "label": "struct EnumerableSet.Bytes32Set",
             "members": [
               {
                 "label": "_inner",
-                "type": "t_struct(Set)10706_storage",
+                "type": "t_struct(Set)10811_storage",
                 "offset": 0,
                 "slot": "0"
               }
             ],
             "numberOfBytes": "64"
           },
-          "t_struct(GlobalState)77211_storage": {
+          "t_struct(GlobalState)85220_storage": {
             "label": "struct IPerpStorage.GlobalState",
             "members": [
               {
@@ -8401,7 +8401,7 @@
             ],
             "numberOfBytes": "32"
           },
-          "t_struct(Market)77245_storage": {
+          "t_struct(Market)85254_storage": {
             "label": "struct IPerpStorage.Market",
             "members": [
               {
@@ -8473,7 +8473,7 @@
             ],
             "numberOfBytes": "352"
           },
-          "t_struct(Position)77268_storage": {
+          "t_struct(Position)85277_storage": {
             "label": "struct IPerpStorage.Position",
             "members": [
               {
@@ -8545,7 +8545,7 @@
             ],
             "numberOfBytes": "352"
           },
-          "t_struct(Set)10706_storage": {
+          "t_struct(Set)10811_storage": {
             "label": "struct EnumerableSet.Set",
             "members": [
               {
@@ -18703,6 +18703,484 @@
           "t_uint48": {
             "label": "uint48",
             "numberOfBytes": "6"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    },
+    "9b33783b81c9486be0441e21e18e3621f4d87816f528bf724ed0e0faadb6ecad": {
+      "address": "0xC9B52430EcC0b690BA7145491CEC57695341e2d5",
+      "txHash": "0x7fe2a60478360ec0967db5b51f0f162a965a44b39c09d06e3f5cdc210e6bad6d",
+      "layout": {
+        "solcVersion": "0.8.18",
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "lib/openzeppelin-contracts-upgradeable/contracts/proxy/utils/Initializable.sol:62",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "lib/openzeppelin-contracts-upgradeable/contracts/proxy/utils/Initializable.sol:67"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "lib/openzeppelin-contracts-upgradeable/contracts/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "_owner",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_address",
+            "contract": "OwnableUpgradeable",
+            "src": "lib/openzeppelin-contracts-upgradeable/contracts/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "52",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "OwnableUpgradeable",
+            "src": "lib/openzeppelin-contracts-upgradeable/contracts/access/OwnableUpgradeable.sol:94"
+          },
+          {
+            "label": "_status",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_uint256",
+            "contract": "ReentrancyGuardUpgradeable",
+            "src": "lib/openzeppelin-contracts-upgradeable/contracts/security/ReentrancyGuardUpgradeable.sol:38"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "ReentrancyGuardUpgradeable",
+            "src": "lib/openzeppelin-contracts-upgradeable/contracts/security/ReentrancyGuardUpgradeable.sol:80"
+          },
+          {
+            "label": "globalState",
+            "offset": 0,
+            "slot": "151",
+            "type": "t_struct(GlobalState)85551_storage",
+            "contract": "PerpStorage",
+            "src": "src/storages/PerpStorage.sol:30"
+          },
+          {
+            "label": "positions",
+            "offset": 0,
+            "slot": "152",
+            "type": "t_mapping(t_bytes32,t_struct(Position)85608_storage)",
+            "contract": "PerpStorage",
+            "src": "src/storages/PerpStorage.sol:32"
+          },
+          {
+            "label": "subAccountPositionIds",
+            "offset": 0,
+            "slot": "153",
+            "type": "t_mapping(t_address,t_array(t_bytes32)dyn_storage)",
+            "contract": "PerpStorage",
+            "src": "src/storages/PerpStorage.sol:33"
+          },
+          {
+            "label": "subAccountBorrowingFee",
+            "offset": 0,
+            "slot": "154",
+            "type": "t_mapping(t_address,t_uint256)",
+            "contract": "PerpStorage",
+            "src": "src/storages/PerpStorage.sol:34"
+          },
+          {
+            "label": "markets",
+            "offset": 0,
+            "slot": "155",
+            "type": "t_mapping(t_uint256,t_struct(Market)85585_storage)",
+            "contract": "PerpStorage",
+            "src": "src/storages/PerpStorage.sol:35"
+          },
+          {
+            "label": "assetClasses",
+            "offset": 0,
+            "slot": "156",
+            "type": "t_mapping(t_uint256,t_struct(AssetClass)85562_storage)",
+            "contract": "PerpStorage",
+            "src": "src/storages/PerpStorage.sol:36"
+          },
+          {
+            "label": "serviceExecutors",
+            "offset": 0,
+            "slot": "157",
+            "type": "t_mapping(t_address,t_bool)",
+            "contract": "PerpStorage",
+            "src": "src/storages/PerpStorage.sol:37"
+          },
+          {
+            "label": "activePositionIds",
+            "offset": 0,
+            "slot": "158",
+            "type": "t_struct(Bytes32Set)11005_storage",
+            "contract": "PerpStorage",
+            "src": "src/storages/PerpStorage.sol:39"
+          },
+          {
+            "label": "activeSubAccounts",
+            "offset": 0,
+            "slot": "160",
+            "type": "t_struct(AddressSet)11126_storage",
+            "contract": "PerpStorage",
+            "src": "src/storages/PerpStorage.sol:40"
+          },
+          {
+            "label": "epochVolumeBuy",
+            "offset": 0,
+            "slot": "162",
+            "type": "t_mapping(t_uint256,t_mapping(t_uint256,t_uint256))",
+            "contract": "PerpStorage",
+            "src": "src/storages/PerpStorage.sol:42"
+          },
+          {
+            "label": "epochVolumeSell",
+            "offset": 0,
+            "slot": "163",
+            "type": "t_mapping(t_uint256,t_mapping(t_uint256,t_uint256))",
+            "contract": "PerpStorage",
+            "src": "src/storages/PerpStorage.sol:43"
+          },
+          {
+            "label": "movingWindowLength",
+            "offset": 0,
+            "slot": "164",
+            "type": "t_uint256",
+            "contract": "PerpStorage",
+            "src": "src/storages/PerpStorage.sol:44"
+          },
+          {
+            "label": "movingWindowInterval",
+            "offset": 0,
+            "slot": "165",
+            "type": "t_uint256",
+            "contract": "PerpStorage",
+            "src": "src/storages/PerpStorage.sol:45"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_bytes32)dyn_storage": {
+            "label": "bytes32[]",
+            "numberOfBytes": "32"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_bytes32": {
+            "label": "bytes32",
+            "numberOfBytes": "32"
+          },
+          "t_int256": {
+            "label": "int256",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_array(t_bytes32)dyn_storage)": {
+            "label": "mapping(address => bytes32[])",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_struct(Position)85608_storage)": {
+            "label": "mapping(bytes32 => struct IPerpStorage.Position)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_uint256)": {
+            "label": "mapping(bytes32 => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_uint256,t_uint256))": {
+            "label": "mapping(uint256 => mapping(uint256 => uint256))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(AssetClass)85562_storage)": {
+            "label": "mapping(uint256 => struct IPerpStorage.AssetClass)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(Market)85585_storage)": {
+            "label": "mapping(uint256 => struct IPerpStorage.Market)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_uint256)": {
+            "label": "mapping(uint256 => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(AddressSet)11126_storage": {
+            "label": "struct EnumerableSet.AddressSet",
+            "members": [
+              {
+                "label": "_inner",
+                "type": "t_struct(Set)10811_storage",
+                "offset": 0,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "64"
+          },
+          "t_struct(AssetClass)85562_storage": {
+            "label": "struct IPerpStorage.AssetClass",
+            "members": [
+              {
+                "label": "reserveValueE30",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "sumBorrowingRate",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "lastBorrowingTime",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "sumBorrowingFeeE30",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "sumSettledBorrowingFeeE30",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "4"
+              }
+            ],
+            "numberOfBytes": "160"
+          },
+          "t_struct(Bytes32Set)11005_storage": {
+            "label": "struct EnumerableSet.Bytes32Set",
+            "members": [
+              {
+                "label": "_inner",
+                "type": "t_struct(Set)10811_storage",
+                "offset": 0,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "64"
+          },
+          "t_struct(GlobalState)85551_storage": {
+            "label": "struct IPerpStorage.GlobalState",
+            "members": [
+              {
+                "label": "reserveValueE30",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_struct(Market)85585_storage": {
+            "label": "struct IPerpStorage.Market",
+            "members": [
+              {
+                "label": "longPositionSize",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "longAccumSE",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "longAccumS2E",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "shortPositionSize",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "shortAccumSE",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "4"
+              },
+              {
+                "label": "shortAccumS2E",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "5"
+              },
+              {
+                "label": "currentFundingRate",
+                "type": "t_int256",
+                "offset": 0,
+                "slot": "6"
+              },
+              {
+                "label": "lastFundingTime",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "7"
+              },
+              {
+                "label": "accumFundingLong",
+                "type": "t_int256",
+                "offset": 0,
+                "slot": "8"
+              },
+              {
+                "label": "accumFundingShort",
+                "type": "t_int256",
+                "offset": 0,
+                "slot": "9"
+              },
+              {
+                "label": "fundingAccrued",
+                "type": "t_int256",
+                "offset": 0,
+                "slot": "10"
+              }
+            ],
+            "numberOfBytes": "352"
+          },
+          "t_struct(Position)85608_storage": {
+            "label": "struct IPerpStorage.Position",
+            "members": [
+              {
+                "label": "primaryAccount",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "marketIndex",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "avgEntryPriceE30",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "entryBorrowingRate",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "reserveValueE30",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "4"
+              },
+              {
+                "label": "lastIncreaseTimestamp",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "5"
+              },
+              {
+                "label": "positionSizeE30",
+                "type": "t_int256",
+                "offset": 0,
+                "slot": "6"
+              },
+              {
+                "label": "realizedPnl",
+                "type": "t_int256",
+                "offset": 0,
+                "slot": "7"
+              },
+              {
+                "label": "lastFundingAccrued",
+                "type": "t_int256",
+                "offset": 0,
+                "slot": "8"
+              },
+              {
+                "label": "subAccountId",
+                "type": "t_uint8",
+                "offset": 0,
+                "slot": "9"
+              },
+              {
+                "label": "lastIncreaseSize",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "10"
+              }
+            ],
+            "numberOfBytes": "352"
+          },
+          "t_struct(Set)10811_storage": {
+            "label": "struct EnumerableSet.Set",
+            "members": [
+              {
+                "label": "_values",
+                "type": "t_array(t_bytes32)dyn_storage",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "_indexes",
+                "type": "t_mapping(t_bytes32,t_uint256)",
+                "offset": 0,
+                "slot": "1"
+              }
+            ],
+            "numberOfBytes": "64"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
           },
           "t_uint8": {
             "label": "uint8",
