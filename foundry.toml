@@ -4,6 +4,8 @@ out = 'out'
 libs = ['lib']
 test = 'test'
 fs_permissions = [{ access = "read-write", path = "./" }]
+optimizer = true
+optimizer_runs = 20_000
 
 [fmt]
 tab_width = 2

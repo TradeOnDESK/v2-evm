@@ -553,7 +553,6 @@ contract CrossMarginHandler is OwnableUpgradeable, ReentrancyGuardUpgradeable, I
         _order.amount,
         address(this)
       );
-
       ERC20Upgradeable(_order.token).safeIncreaseAllowance(address(deskVault), _order.amount);
       deskVault.deposit(_order.token, bytes32(bytes20(address(_order.account))), _order.amount);
       emit LogMigrateToDESK(_order.account, _order.subAccountId, _order.token, _order.amount);
@@ -665,6 +664,7 @@ contract CrossMarginHandler is OwnableUpgradeable, ReentrancyGuardUpgradeable, I
   }
 
   function setDESKVault(address _vault) external nonReentrant onlyOwner {
+    if (_vault == address(0)) revert ICrossMarginHandler_InvalidAddress();
     deskVault = IDESKVault(_vault);
     emit LogSetDESKVault(_vault);
   }

@@ -7,6 +7,14 @@ interface IPerpStorage {
    */
   error IPerpStorage_NotWhiteListed();
   error IPerpStorage_BadLen();
+  error IPerpStorage_BadArrayLength();
+
+  /**
+   * Events
+   */
+  event LogSetServiceExecutor(address indexed executorAddress, bool isServiceExecutor);
+  event LogSetMovingWindowConfig(uint256 length, uint256 interval);
+  event LogSetFundingRate(uint256 indexed marketIndex, int256 fundingRate);
 
   /**
    * Structs
@@ -112,4 +120,6 @@ interface IPerpStorage {
   function increaseEpochVolume(bool isBuy, uint256 marketIndex, uint256 absSizeDelta) external;
 
   function getEpochVolume(bool isBuy, uint256 marketIndex) external view returns (uint256 epochVolume);
+
+  function setFundingRate(uint256[] calldata _marketIndexes, int256[] calldata _fundingRates) external;
 }
