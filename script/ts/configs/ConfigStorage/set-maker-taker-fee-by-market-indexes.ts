@@ -8,16 +8,24 @@ import { ethers } from "ethers";
 async function main(chainId: number) {
   const config = loadConfig(chainId);
 
+  const forexFees = {
+    makerFee: 5000, // 0.005%
+    takerFee: 25000, // 0.025%
+  };
+
+  const commoditiesFees = {
+    makerFee: 35000, // 0.035%
+    takerFee: 75000, // 0.075%
+  };
+  const cryptoFees = {
+    makerFee: 35000, // 0.035%
+    takerFee: 75000, // 0.075%
+  };
+
   const inputs = [
     {
-      marketIndex: 0, // ETHUSD
-      makerFee: 20000, // 0.02%
-      takerFee: 40000, // 0.04%
-    },
-    {
-      marketIndex: 1, // BTCUSD
-      makerFee: 20000, // 0.02%
-      takerFee: 40000, // 0.04%
+      marketIndex: 55, // CRCLUSD
+      ...commoditiesFees,
     },
   ];
 
