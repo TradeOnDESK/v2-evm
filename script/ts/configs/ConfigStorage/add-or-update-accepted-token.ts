@@ -13,7 +13,16 @@ async function main(chainId: number) {
 
   const inputs = [
     {
-      tokenAddress: config.tokens.link,
+      tokenAddress: config.tokens.usdcNative,
+      config: {
+        targetWeight: ethers.utils.parseEther("0.1"), // 10%
+        bufferLiquidity: 0,
+        maxWeightDiff: ethers.utils.parseEther("1000"), // 100000 % (Don't check max weight diff at launch)
+        accepted: true,
+      },
+    },
+    {
+      tokenAddress: config.tokens.usdc,
       config: {
         targetWeight: ethers.utils.parseEther("0"), // 0%
         bufferLiquidity: 0,
