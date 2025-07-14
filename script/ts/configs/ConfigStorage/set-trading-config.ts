@@ -2,23 +2,27 @@ import { ConfigStorage__factory } from "../../../../typechain";
 import { loadConfig } from "../../utils/config";
 import { Command } from "commander";
 import signers from "../../entities/signers";
-import SafeWrapper from "../../wrappers/SafeWrapper";
+import { OwnerWrapper } from "../../wrappers/OwnerWrapper";
 
 const tradingConfig = {
   fundingInterval: 1, // second
-  devFeeRateBPS: 1000, // 10%
-  minProfitDuration: 60 * 5,
+  devFeeRateBPS: 0, // 0%
+  minProfitDuration: 1000,
   maxPosition: 10, // 10 positions per sub-account max
 };
 
 async function main(chainId: number) {
   const config = loadConfig(chainId);
   const deployer = signers.deployer(chainId);
-  const safeWrapper = new SafeWrapper(chainId, config.safe, deployer);
+  const ownerWrapper = new OwnerWrapper(chainId, deployer);
   const configStorage = ConfigStorage__factory.connect(config.storages.config, deployer);
 
   console.log("[ConfigStorage] Set Trading Config...");
-  await (await configStorage.setTradingConfig(tradingConfig)).wait();
+  await ownerWrapper.authExec(
+    configStorage.address,
+    configStorage.interface.encodeFunctionData("setTradingConfig", [tradingConfig])
+  );
+  console.log("[ConfigStorage] Trading config set successfully");
 }
 
 const prog = new Command();

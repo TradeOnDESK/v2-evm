@@ -18,14 +18,144 @@ async function main(chainId: number) {
   );
   const params: Array<SetDexter> = [
     {
-      tokenIn: config.tokens.sglp,
-      tokenOut: config.tokens.usdcNative,
+      tokenIn: config.tokens.usdc,
+      tokenOut: config.tokens.usdt,
+      dexter: config.extension.dexter.curve,
+    },
+    {
+      tokenIn: config.tokens.usdc,
+      tokenOut: config.tokens.dai,
+      dexter: config.extension.dexter.uniswapV3,
+    },
+    {
+      tokenIn: config.tokens.usdc,
+      tokenOut: config.tokens.wbtc,
+      dexter: config.extension.dexter.uniswapV3,
+    },
+    {
+      tokenIn: config.tokens.usdc,
+      tokenOut: config.tokens.weth,
+      dexter: config.extension.dexter.uniswapV3,
+    },
+    {
+      tokenIn: config.tokens.usdc,
+      tokenOut: config.tokens.arb,
+      dexter: config.extension.dexter.uniswapV3,
+    },
+    {
+      tokenIn: config.tokens.usdc,
+      tokenOut: config.tokens.sglp,
       dexter: config.extension.dexter.glp,
     },
     {
-      tokenIn: config.tokens.usdcNative,
+      tokenIn: config.tokens.usdt,
+      tokenOut: config.tokens.usdc,
+      dexter: config.extension.dexter.curve,
+    },
+    {
+      tokenIn: config.tokens.dai,
+      tokenOut: config.tokens.usdc,
+      dexter: config.extension.dexter.uniswapV3,
+    },
+    {
+      tokenIn: config.tokens.wbtc,
+      tokenOut: config.tokens.usdc,
+      dexter: config.extension.dexter.uniswapV3,
+    },
+    {
+      tokenIn: config.tokens.weth,
+      tokenOut: config.tokens.usdc,
+      dexter: config.extension.dexter.uniswapV3,
+    },
+    {
+      tokenIn: config.tokens.arb,
+      tokenOut: config.tokens.usdc,
+      dexter: config.extension.dexter.uniswapV3,
+    },
+    {
+      tokenIn: config.tokens.sglp,
+      tokenOut: config.tokens.usdc,
+      dexter: config.extension.dexter.glp,
+    },
+    {
+      tokenIn: config.tokens.usdt,
+      tokenOut: config.tokens.weth,
+      dexter: config.extension.dexter.uniswapV3,
+    },
+    {
+      tokenIn: config.tokens.weth,
+      tokenOut: config.tokens.usdt,
+      dexter: config.extension.dexter.uniswapV3,
+    },
+    {
+      tokenIn: config.tokens.dai,
       tokenOut: config.tokens.sglp,
       dexter: config.extension.dexter.glp,
+    },
+    {
+      tokenIn: config.tokens.sglp,
+      tokenOut: config.tokens.dai,
+      dexter: config.extension.dexter.glp,
+    },
+    {
+      tokenIn: config.tokens.weth,
+      tokenOut: config.tokens.wbtc,
+      dexter: config.extension.dexter.uniswapV3,
+    },
+    {
+      tokenIn: config.tokens.weth,
+      tokenOut: config.tokens.arb,
+      dexter: config.extension.dexter.uniswapV3,
+    },
+    {
+      tokenIn: config.tokens.weth,
+      tokenOut: config.tokens.sglp,
+      dexter: config.extension.dexter.glp,
+    },
+    {
+      tokenIn: config.tokens.wbtc,
+      tokenOut: config.tokens.weth,
+      dexter: config.extension.dexter.uniswapV3,
+    },
+    {
+      tokenIn: config.tokens.arb,
+      tokenOut: config.tokens.usdc,
+      dexter: config.extension.dexter.uniswapV3,
+    },
+    {
+      tokenIn: config.tokens.sglp,
+      tokenOut: config.tokens.weth,
+      dexter: config.extension.dexter.glp,
+    },
+    {
+      tokenIn: config.tokens.wbtc,
+      tokenOut: config.tokens.sglp,
+      dexter: config.extension.dexter.glp,
+    },
+    {
+      tokenIn: config.tokens.sglp,
+      tokenOut: config.tokens.wbtc,
+      dexter: config.extension.dexter.glp,
+    },
+    {
+      tokenIn: config.tokens.wstEth,
+      tokenOut: config.tokens.weth,
+      dexter: config.extension.dexter.uniswapV3,
+    },
+    {
+      tokenIn: config.tokens.wstEth,
+      tokenOut: config.tokens.usdc,
+      dexter: config.extension.dexter.uniswapV3,
+    },
+    {
+      tokenIn: config.tokens.weth,
+      tokenOut: config.tokens.wstEth,
+      dexter: config.extension.dexter.uniswapV3,
+    },
+    {
+      tokenIn: config.tokens.usdc,
+      tokenOut: config.tokens.wstEth,
+      dexter: config.extension.dexter.uniswapV3,
     },
   ];
 
