@@ -104,22 +104,12 @@ async function main(chainId: number) {
     },
     {
       tokenIn: config.tokens.weth,
-      tokenOut: config.tokens.arb,
-      dexter: config.extension.dexter.uniswapV3,
-    },
-    {
-      tokenIn: config.tokens.weth,
       tokenOut: config.tokens.sglp,
       dexter: config.extension.dexter.glp,
     },
     {
       tokenIn: config.tokens.wbtc,
       tokenOut: config.tokens.weth,
-      dexter: config.extension.dexter.uniswapV3,
-    },
-    {
-      tokenIn: config.tokens.arb,
-      tokenOut: config.tokens.usdc,
       dexter: config.extension.dexter.uniswapV3,
     },
     {
