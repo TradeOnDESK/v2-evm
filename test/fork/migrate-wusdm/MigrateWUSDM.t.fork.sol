@@ -23,7 +23,7 @@ contract MigrateWUSDM is ForkEnv, Cheats {
   IERC20 internal constant wusdm = IERC20(0x57F5E098CaD7A3D1Eed53991D4d66C45C9AF7812);
 
   function setUp() public virtual {
-    vm.createSelectFork(vm.envString("ARBITRUM_ONE_FORK"));
+    vm.createSelectFork(vm.envString("ARBITRUM_ONE_FORK"), 360674265);
 
     // Whitelist the multi-sig as a service executor
     vm.startPrank(vaultStorage.owner());
@@ -36,28 +36,29 @@ contract MigrateWUSDM is ForkEnv, Cheats {
     uint256 initialWUSDMHLPLiquidity = vaultStorage.hlpLiquidity(address(wusdm));
     uint256 initialWUSDMOnHold = vaultStorage.hlpLiquidityOnHold(address(wusdm));
     uint256 initialUSDCBalance = usdc.balanceOf(address(vaultStorage));
+    uint256 initialAUM = calculator.getAUME30(false);
 
     console.log("Initial WUSDM HLP Liquidity:", initialWUSDMHLPLiquidity);
     console.log("Initial WUSDM On Hold:", initialWUSDMOnHold);
     console.log("Initial USDC Balance in Vault:", initialUSDCBalance);
+    console.log("Initial AUM:", initialAUM);
 
     // Ensure we have WUSDM liquidity to migrate
     assertGt(initialWUSDMHLPLiquidity, 0, "Should have WUSDM liquidity to migrate");
 
     // Step 2: Multi-sig removes WUSDM from HLP liquidity and puts it on hold
     vm.startPrank(multiSig);
-
-    // Remove all WUSDM from HLP liquidity and put it on hold
     vaultStorage.removeHLPLiquidityOnHold(address(wusdm), initialWUSDMHLPLiquidity);
-
     vm.stopPrank();
 
     // Step 3: Verify the state after putting WUSDM on hold
     uint256 wusdmHLPLiquidityAfter = vaultStorage.hlpLiquidity(address(wusdm));
     uint256 wusdmOnHoldAfter = vaultStorage.hlpLiquidityOnHold(address(wusdm));
+    uint256 aumAfterOnHold = calculator.getAUME30(false);
 
     console.log("WUSDM HLP Liquidity after on-hold:", wusdmHLPLiquidityAfter);
     console.log("WUSDM On Hold after migration:", wusdmOnHoldAfter);
+    console.log("AUM after putting WUSDM on hold:", aumAfterOnHold);
 
     // Verify WUSDM is removed from HLP liquidity
     assertEq(wusdmHLPLiquidityAfter, 0, "WUSDM should be removed from HLP liquidity");
@@ -65,16 +66,17 @@ contract MigrateWUSDM is ForkEnv, Cheats {
     // Verify WUSDM is put on hold
     assertEq(wusdmOnHoldAfter, initialWUSDMHLPLiquidity, "WUSDM should be put on hold");
 
+    // Verify AUM doesn't drop more than 1% after putting WUSDM on hold
+    if (aumAfterOnHold <= initialAUM) {
+      uint256 aumDropPercentage = ((initialAUM - aumAfterOnHold) * 100) / initialAUM;
+      assertLe(aumDropPercentage, 1, "AUM should not drop more than 1% after putting WUSDM on hold");
+      console.log("AUM drop percentage after on-hold:", aumDropPercentage);
+    } else {
+      console.log("AUM increased after putting WUSDM on hold - no drop to calculate");
+    }
+
     // Step 4: Multi-sig injects USDC to replace WUSDM
-    vm.startPrank(multiSig);
-
-    // Calculate equivalent USDC amount (assuming 1:1 ratio for this test)
-    // In a real scenario, this would be calculated based on the actual exchange rate
     uint256 usdcAmountToInject = initialWUSDMHLPLiquidity;
-
-    // Give the multi-sig some USDC first (in a real scenario, this would come from external sources)
-    // We'll use a whale or the deployer to provide USDC to the multi-sig
-    vm.stopPrank();
 
     // Mint USDC to the multi-sig using deal
     deal(address(usdc), multiSig, usdcAmountToInject);
@@ -82,38 +84,41 @@ contract MigrateWUSDM is ForkEnv, Cheats {
     // Now the multi-sig can transfer USDC to vault storage
     vm.startPrank(multiSig);
     usdc.transfer(address(vaultStorage), usdcAmountToInject);
-
-    // Add USDC to HLP liquidity
     vaultStorage.addHLPLiquidity(address(usdc), usdcAmountToInject);
-
     vm.stopPrank();
 
     // Step 5: Verify USDC injection
     uint256 usdcHLPLiquidityAfter = vaultStorage.hlpLiquidity(address(usdc));
-    uint256 usdcBalanceAfter = usdc.balanceOf(address(vaultStorage));
+    uint256 aumAfterUSDCInjection = calculator.getAUME30(false);
 
     console.log("USDC HLP Liquidity after injection:", usdcHLPLiquidityAfter);
-    console.log("USDC Balance in Vault after injection:", usdcBalanceAfter);
+    console.log("AUM after USDC injection:", aumAfterUSDCInjection);
 
     // Verify USDC is added to HLP liquidity
     assertGt(usdcHLPLiquidityAfter, 0, "USDC should be added to HLP liquidity");
 
+    // Verify AUM doesn't drop more than 1% after USDC injection
+    if (aumAfterUSDCInjection <= initialAUM) {
+      uint256 aumDropPercentageAfterUSDC = ((initialAUM - aumAfterUSDCInjection) * 100) / initialAUM;
+      assertLe(aumDropPercentageAfterUSDC, 1, "AUM should not drop more than 1% after USDC injection");
+      console.log("AUM drop percentage after USDC injection:", aumDropPercentageAfterUSDC);
+    } else {
+      console.log("AUM increased after USDC injection - no drop to calculate");
+    }
+
     // Step 6: Multi-sig clears the on-hold WUSDM
     vm.startPrank(multiSig);
-
-    // Clear the on-hold WUSDM
     vaultStorage.clearOnHold(address(wusdm), initialWUSDMHLPLiquidity);
-
     vm.stopPrank();
 
     // Step 7: Verify final state
     uint256 finalWUSDMOnHold = vaultStorage.hlpLiquidityOnHold(address(wusdm));
     uint256 finalWUSDMHLPLiquidity = vaultStorage.hlpLiquidity(address(wusdm));
-    uint256 finalUSDCBalance = usdc.balanceOf(address(vaultStorage));
+    uint256 finalAUM = calculator.getAUME30(false);
 
     console.log("Final WUSDM On Hold:", finalWUSDMOnHold);
     console.log("Final WUSDM HLP Liquidity:", finalWUSDMHLPLiquidity);
-    console.log("Final USDC Balance in Vault:", finalUSDCBalance);
+    console.log("Final AUM:", finalAUM);
 
     // Verify WUSDM on-hold is cleared
     assertEq(finalWUSDMOnHold, 0, "WUSDM on-hold should be cleared");
@@ -123,6 +128,15 @@ contract MigrateWUSDM is ForkEnv, Cheats {
 
     // Verify USDC is properly injected
     assertGt(usdcHLPLiquidityAfter, 0, "USDC should be in HLP liquidity");
+
+    // Verify final AUM doesn't drop more than 1% from initial
+    if (finalAUM <= initialAUM) {
+      uint256 finalAUMDropPercentage = ((initialAUM - finalAUM) * 100) / initialAUM;
+      assertLe(finalAUMDropPercentage, 1, "Final AUM should not drop more than 1% from initial");
+      console.log("Final AUM drop percentage:", finalAUMDropPercentage);
+    } else {
+      console.log("Final AUM increased - no drop to calculate");
+    }
 
     console.log("WUSDM migration completed successfully!");
   }
