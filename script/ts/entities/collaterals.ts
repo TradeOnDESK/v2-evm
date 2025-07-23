@@ -62,4 +62,9 @@ export default {
     address: "0x70d95587d40A2caf56bd97485aB3Eec10Bee6336",
     decimals: 18,
   },
+  WUSDM: {
+    assetId: ethers.utils.formatBytes32String("WUSDM"),
+    address: "0x57F5E098CaD7A3D1Eed53991D4d66C45C9AF7812",
+    decimals: 18,
+  },
 } as { [collateralSymbol: string]: CollateralEntity };
