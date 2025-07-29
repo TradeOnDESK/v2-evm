@@ -65,6 +65,8 @@ contract ExternalRebalancer is OwnableUpgradeable, ReentrancyGuardUpgradeable {
   error ExternalRebalancer_InsufficientLiquidity();
   error ExternalRebalancer_AUMDropExceeded();
   error ExternalRebalancer_NoReplacementToken();
+  error ExternalRebalancer_InsufficientReplacementAmount();
+  error ExternalRebalancer_InvalidPercentage();
 
   function initialize(address _vaultStorage, address _calculator, uint16 _maxAUMDropPercentage) external initializer {
     OwnableUpgradeable.__Ownable_init();
@@ -139,6 +141,12 @@ contract ExternalRebalancer is OwnableUpgradeable, ReentrancyGuardUpgradeable {
       revert ExternalRebalancer_NoReplacementToken();
     }
 
+    // Add validation for replacement amount
+    if (_replacementAmount < (onHoldAmount * 90) / 100) {
+      // Allow 10% tolerance
+      revert ExternalRebalancer_InsufficientReplacementAmount();
+    }
+
     // Get initial AUM for comparison
     uint256 initialAUM = calculator.getAUME30(false);
 
@@ -172,6 +180,10 @@ contract ExternalRebalancer is OwnableUpgradeable, ReentrancyGuardUpgradeable {
    * @param _maxAUMDropPercentage The maximum AUM drop percentage in basis points
    */
   function setMaxAUMDropPercentage(uint16 _maxAUMDropPercentage) external onlyOwner {
+    if (_maxAUMDropPercentage > 10000) {
+      // 100%
+      revert ExternalRebalancer_InvalidPercentage();
+    }
     emit LogSetMaxAUMDropPercentage(maxAUMDropPercentage, _maxAUMDropPercentage);
     maxAUMDropPercentage = _maxAUMDropPercentage;
   }
@@ -238,13 +250,17 @@ contract ExternalRebalancer is OwnableUpgradeable, ReentrancyGuardUpgradeable {
   ) external view returns (uint256) {
     uint256 initialAUM = calculator.getAUME30(false);
 
-    // Simulate the rebalance by temporarily adding replacement tokens
+    // Get current liquidity values
+    uint256 currentRemovedLiquidity = vaultStorage.hlpLiquidity(_tokenToRemove);
     uint256 currentReplacementLiquidity = vaultStorage.hlpLiquidity(_replacementToken);
-    uint256 simulatedReplacementLiquidity = currentReplacementLiquidity + _replacementAmount;
 
-    // This is a simplified calculation - in practice, you'd need to account for price changes
-    // For now, we'll use a basic approximation
-    uint256 simulatedAUM = initialAUM + _replacementAmount; // Simplified
+    // Simulate the rebalance operation
+    uint256 onHoldAmount = vaultStorage.hlpLiquidityOnHold(_tokenToRemove);
+    uint256 effectiveRemovedAmount = onHoldAmount > 0 ? onHoldAmount : currentRemovedLiquidity;
+
+    // This is a simplified calculation - in practice, you'd need price oracle integration
+    // For now, assume 1:1 replacement for demonstration
+    uint256 simulatedAUM = initialAUM - effectiveRemovedAmount + _replacementAmount;
 
     if (simulatedAUM <= initialAUM) {
       return ((initialAUM - simulatedAUM) * 10000) / initialAUM;
