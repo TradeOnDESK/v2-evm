@@ -5,6 +5,7 @@ import { ExternalRebalancer__factory } from "../../../../typechain";
 import * as readlineSync from "readline-sync";
 import { ethers } from "ethers";
 import { OwnerWrapper } from "../../wrappers/OwnerWrapper";
+import { ERC20__factory } from "../../../../typechain";
 
 async function main(chainId: number) {
   const config = loadConfig(chainId);
@@ -43,6 +44,21 @@ async function main(chainId: number) {
       externalRebalancer.interface.encodeFunctionData("addWhitelistedExecutor", [deployerAddress])
     );
     console.log(`[cmds/ExternalRebalancer] Caller added to whitelist.`);
+  }
+
+  // Check and approve token allowance for the replacement token
+  console.log(`[cmds/ExternalRebalancer] Checking token allowance...`);
+  const replacementTokenContract = ERC20__factory.connect(replacementToken, deployer);
+  const signerAddress = await deployer.getAddress();
+  const allowance = await replacementTokenContract.allowance(signerAddress, externalRebalancer.address);
+
+  if (allowance.lt(replacementAmount)) {
+    console.log(`[cmds/ExternalRebalancer] Approving ${ethers.utils.formatUnits(replacementAmount, 6)} USDC...`);
+    const approveTx = await replacementTokenContract.approve(externalRebalancer.address, replacementAmount);
+    await approveTx.wait();
+    console.log(`[cmds/ExternalRebalancer] Token approval completed.`);
+  } else {
+    console.log(`[cmds/ExternalRebalancer] Sufficient allowance already exists.`);
   }
 
   console.log(`[cmds/ExternalRebalancer] Executing completeRebalance...`);
