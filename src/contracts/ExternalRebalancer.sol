@@ -236,39 +236,6 @@ contract ExternalRebalancer is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     emit LogSetWhitelistedExecutor(_executor, false);
   }
 
-  /**
-   * @notice Get the current AUM drop percentage if a rebalance were to be completed
-   * @param _tokenToRemove The token that was removed
-   * @param _replacementToken The replacement token
-   * @param _replacementAmount The amount of replacement token
-   * @return The AUM drop percentage in basis points
-   */
-  function getAUMDropPercentage(
-    address _tokenToRemove,
-    address _replacementToken,
-    uint256 _replacementAmount
-  ) external view returns (uint256) {
-    uint256 initialAUM = calculator.getAUME30(false);
-
-    // Get current liquidity values
-    uint256 currentRemovedLiquidity = vaultStorage.hlpLiquidity(_tokenToRemove);
-    uint256 currentReplacementLiquidity = vaultStorage.hlpLiquidity(_replacementToken);
-
-    // Simulate the rebalance operation
-    uint256 onHoldAmount = vaultStorage.hlpLiquidityOnHold(_tokenToRemove);
-    uint256 effectiveRemovedAmount = onHoldAmount > 0 ? onHoldAmount : currentRemovedLiquidity;
-
-    // This is a simplified calculation - in practice, you'd need price oracle integration
-    // For now, assume 1:1 replacement for demonstration
-    uint256 simulatedAUM = initialAUM - effectiveRemovedAmount + _replacementAmount;
-
-    if (simulatedAUM <= initialAUM) {
-      return ((initialAUM - simulatedAUM) * 10000) / initialAUM;
-    }
-
-    return 0;
-  }
-
   /// @custom:oz-upgrades-unsafe-allow constructor
   constructor() {
     _disableInitializers();
