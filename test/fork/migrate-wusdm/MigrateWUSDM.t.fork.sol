@@ -14,6 +14,10 @@ import { ForkEnv } from "@hmx-test/fork/bases/ForkEnv.sol";
 import { Cheats } from "@hmx-test/base/Cheats.sol";
 import { ProxyAdmin } from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { console2 } from "forge-std/console2.sol";
+
+// ExternalRebalancer
+import { ExternalRebalancer } from "@hmx/contracts/ExternalRebalancer.sol";
 
 // Forge
 import { console } from "forge-std/console.sol";
@@ -22,12 +26,26 @@ contract MigrateWUSDM is ForkEnv, Cheats {
   // WUSDM token address from mainnet config
   IERC20 internal constant wusdm = IERC20(0x57F5E098CaD7A3D1Eed53991D4d66C45C9AF7812);
 
+  // ExternalRebalancer contract
+  ExternalRebalancer public externalRebalancer;
+
   function setUp() public virtual {
     vm.createSelectFork(vm.envString("ARBITRUM_ONE_FORK"), 360674265);
 
-    // Whitelist the multi-sig as a service executor
+    // Deploy ExternalRebalancer using Deployer
+    externalRebalancer = Deployer.deployExternalRebalancer(
+      address(proxyAdmin),
+      address(vaultStorage),
+      address(calculator),
+      100 // 1% max AUM drop (100 basis points)
+    );
+
+    // Whitelist the test contract as an executor in ExternalRebalancer
+    externalRebalancer.addWhitelistedExecutor(address(this));
+
+    // Whitelist the ExternalRebalancer as a service executor
     vm.startPrank(vaultStorage.owner());
-    vaultStorage.setServiceExecutors(multiSig, true);
+    vaultStorage.setServiceExecutors(address(externalRebalancer), true);
     vm.stopPrank();
   }
 
@@ -46,10 +64,9 @@ contract MigrateWUSDM is ForkEnv, Cheats {
     // Ensure we have WUSDM liquidity to migrate
     assertGt(initialWUSDMHLPLiquidity, 0, "Should have WUSDM liquidity to migrate");
 
-    // Step 2: Multi-sig removes WUSDM from HLP liquidity and puts it on hold
-    vm.startPrank(multiSig);
-    vaultStorage.removeHLPLiquidityOnHold(address(wusdm), initialWUSDMHLPLiquidity);
-    vm.stopPrank();
+    // Step 2: ExternalRebalancer removes WUSDM from HLP liquidity and puts it on hold
+    // The removed tokens will be transferred to the ExternalRebalancer itself
+    externalRebalancer.startRebalance(address(wusdm), initialWUSDMHLPLiquidity, address(externalRebalancer));
 
     // Step 3: Verify the state after putting WUSDM on hold
     uint256 wusdmHLPLiquidityAfter = vaultStorage.hlpLiquidity(address(wusdm));
@@ -75,17 +92,16 @@ contract MigrateWUSDM is ForkEnv, Cheats {
       console.log("AUM increased after putting WUSDM on hold - no drop to calculate");
     }
 
-    // Step 4: Multi-sig injects USDC to replace WUSDM
+    // Step 4: ExternalRebalancer injects USDC to replace WUSDM
     uint256 usdcAmountToInject = initialWUSDMHLPLiquidity;
 
-    // Mint USDC to the multi-sig using deal
-    deal(address(usdc), multiSig, usdcAmountToInject);
+    // Mint USDC to the ExternalRebalancer using deal
+    deal(address(usdc), address(this), usdcAmountToInject);
 
-    // Now the multi-sig can transfer USDC to vault storage
-    vm.startPrank(multiSig);
-    usdc.transfer(address(vaultStorage), usdcAmountToInject);
-    vaultStorage.addHLPLiquidity(address(usdc), usdcAmountToInject);
-    vm.stopPrank();
+    // Complete the rebalance by adding USDC as replacement
+    usdc.approve(address(externalRebalancer), usdcAmountToInject);
+    console2.log("usdc.balanceOf(address(this))", usdc.balanceOf(address(this)));
+    externalRebalancer.completeRebalance(address(wusdm), address(usdc), usdcAmountToInject);
 
     // Step 5: Verify USDC injection
     uint256 usdcHLPLiquidityAfter = vaultStorage.hlpLiquidity(address(usdc));
@@ -106,12 +122,7 @@ contract MigrateWUSDM is ForkEnv, Cheats {
       console.log("AUM increased after USDC injection - no drop to calculate");
     }
 
-    // Step 6: Multi-sig clears the on-hold WUSDM
-    vm.startPrank(multiSig);
-    vaultStorage.clearOnHold(address(wusdm), initialWUSDMHLPLiquidity);
-    vm.stopPrank();
-
-    // Step 7: Verify final state
+    // Step 6: Verify final state
     uint256 finalWUSDMOnHold = vaultStorage.hlpLiquidityOnHold(address(wusdm));
     uint256 finalWUSDMHLPLiquidity = vaultStorage.hlpLiquidity(address(wusdm));
     uint256 finalAUM = calculator.getAUME30(false);
@@ -120,7 +131,7 @@ contract MigrateWUSDM is ForkEnv, Cheats {
     console.log("Final WUSDM HLP Liquidity:", finalWUSDMHLPLiquidity);
     console.log("Final AUM:", finalAUM);
 
-    // Verify WUSDM on-hold is cleared
+    // Verify WUSDM on-hold is cleared (should be cleared during completeRebalance)
     assertEq(finalWUSDMOnHold, 0, "WUSDM on-hold should be cleared");
 
     // Verify WUSDM HLP liquidity remains at 0
@@ -141,15 +152,15 @@ contract MigrateWUSDM is ForkEnv, Cheats {
     console.log("WUSDM migration completed successfully!");
   }
 
-  function testMigrateWUSDM_RevertWhenNotMultiSig() external {
-    // Test that only multi-sig can call removeHLPLiquidityOnHold
+  function testMigrateWUSDM_RevertWhenNotWhitelisted() external {
+    // Test that only whitelisted executors can call startRebalance
     uint256 initialWUSDMHLPLiquidity = vaultStorage.hlpLiquidity(address(wusdm));
 
     // Try to call with a different address (should revert)
     vm.startPrank(ALICE);
 
     vm.expectRevert();
-    vaultStorage.removeHLPLiquidityOnHold(address(wusdm), initialWUSDMHLPLiquidity);
+    externalRebalancer.startRebalance(address(wusdm), initialWUSDMHLPLiquidity, ALICE);
 
     vm.stopPrank();
   }
@@ -159,10 +170,10 @@ contract MigrateWUSDM is ForkEnv, Cheats {
     uint256 initialWUSDMHLPLiquidity = vaultStorage.hlpLiquidity(address(wusdm));
     uint256 excessiveAmount = initialWUSDMHLPLiquidity + 1;
 
-    vm.startPrank(multiSig);
+    vm.startPrank(address(externalRebalancer));
 
     vm.expectRevert();
-    vaultStorage.removeHLPLiquidityOnHold(address(wusdm), excessiveAmount);
+    externalRebalancer.startRebalance(address(wusdm), excessiveAmount, address(externalRebalancer));
 
     vm.stopPrank();
   }
@@ -177,10 +188,8 @@ contract MigrateWUSDM is ForkEnv, Cheats {
     console.log("Initial HLP liquidity:", initialWUSDMHLPLiquidity);
     console.log("Initial on-hold:", initialWUSDMOnHold);
 
-    // Remove WUSDM from HLP and put on hold
-    vm.startPrank(multiSig);
-    vaultStorage.removeHLPLiquidityOnHold(address(wusdm), initialWUSDMHLPLiquidity);
-    vm.stopPrank();
+    // Remove WUSDM from HLP and put on hold using ExternalRebalancer
+    externalRebalancer.startRebalance(address(wusdm), initialWUSDMHLPLiquidity, address(externalRebalancer));
 
     uint256 totalAmountAfter = vaultStorage.totalAmount(address(wusdm));
     uint256 hlpLiquidityAfter = vaultStorage.hlpLiquidity(address(wusdm));
@@ -198,5 +207,65 @@ contract MigrateWUSDM is ForkEnv, Cheats {
 
     // Verify on-hold is increased
     assertEq(onHoldAfter, initialWUSDMHLPLiquidity, "On-hold should equal removed liquidity");
+  }
+
+  function testMigrateWUSDM_AUMDropExceeded() external {
+    // Test that rebalance fails when AUM drop exceeds maximum allowed
+    uint256 initialWUSDMHLPLiquidity = vaultStorage.hlpLiquidity(address(wusdm));
+
+    // Set a very low max AUM drop percentage (0.1%)
+    externalRebalancer.setMaxAUMDropPercentage(10); // 10 basis points = 0.1%
+
+    // Start rebalance
+    externalRebalancer.startRebalance(address(wusdm), initialWUSDMHLPLiquidity, address(externalRebalancer));
+
+    // Try to complete rebalance with insufficient replacement amount
+    uint256 insufficientReplacementAmount = initialWUSDMHLPLiquidity / 2; // Only half the amount
+
+    // Mint insufficient USDC to ExternalRebalancer
+    deal(address(usdc), address(this), insufficientReplacementAmount);
+
+    // This should revert due to AUM drop exceeding the maximum allowed
+    vm.expectRevert();
+    externalRebalancer.completeRebalance(address(wusdm), address(usdc), insufficientReplacementAmount);
+  }
+
+  function testMigrateWUSDM_SuccessfulRebalanceWithAUMCheck() external {
+    // Test successful rebalance with proper AUM validation
+    uint256 initialWUSDMHLPLiquidity = vaultStorage.hlpLiquidity(address(wusdm));
+    uint256 initialAUM = calculator.getAUME30(false);
+
+    // Set reasonable max AUM drop percentage (1%)
+    externalRebalancer.setMaxAUMDropPercentage(100); // 100 basis points = 1%
+
+    // Start rebalance
+    externalRebalancer.startRebalance(address(wusdm), initialWUSDMHLPLiquidity, address(externalRebalancer));
+
+    // Complete rebalance with sufficient replacement amount
+    uint256 replacementAmount = initialWUSDMHLPLiquidity;
+    deal(address(usdc), address(this), replacementAmount);
+
+    // This should succeed
+    usdc.approve(address(externalRebalancer), replacementAmount);
+    externalRebalancer.completeRebalance(address(wusdm), address(usdc), replacementAmount);
+
+    // Verify final state
+    uint256 finalAUM = calculator.getAUME30(false);
+    uint256 finalWUSDMOnHold = vaultStorage.hlpLiquidityOnHold(address(wusdm));
+    uint256 finalUSDCBalance = vaultStorage.hlpLiquidity(address(usdc));
+
+    // Verify WUSDM on-hold is cleared
+    assertEq(finalWUSDMOnHold, 0, "WUSDM on-hold should be cleared");
+
+    // Verify USDC is added
+    assertGt(finalUSDCBalance, 0, "USDC should be added to HLP liquidity");
+
+    // Verify AUM drop is within acceptable range
+    if (finalAUM <= initialAUM) {
+      uint256 aumDropPercentage = ((initialAUM - finalAUM) * 10000) / initialAUM; // in basis points
+      assertLe(aumDropPercentage, 100, "AUM drop should not exceed 1%");
+    }
+
+    console.log("Successful rebalance with AUM validation completed!");
   }
 }
