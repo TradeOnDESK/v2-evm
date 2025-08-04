@@ -62,6 +62,7 @@ contract OrderReader {
     }
     // get merket configs
     vars.marketConfigs = configStorage.getMarketConfigs();
+    uint256 marketLength = vars.marketConfigs.length;
     uint256 len = vars.marketConfigs.length;
     vars.isInValidMarket = new bool[](len);
     for (uint256 i; i < len; i++) {
@@ -96,6 +97,9 @@ contract OrderReader {
       _positionId = _getPositionId(_subAccount, _order.marketIndex);
       _position = perpStorage.getPositionById(_positionId);
       {
+        if (_order.marketIndex >= marketLength) {
+          continue;
+        }
         if (vars.isInValidMarket[_order.marketIndex]) {
           continue;
         }

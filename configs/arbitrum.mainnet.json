@@ -144,7 +144,7 @@
   },
   "rewardDistributor": "0x0E303E9d98A3f88097B07BeFb510aA7a97Ff440D",
   "reader": {
-    "order": "0x77e41B34B1A58463f554d6d013967d553D11162A",
+    "order": "0x6ceB1538601E040e7dA6AD02AC2Ab40c5A5Ffeb1",
     "position": "0x8B406047A942DB7F2c15839b11E3ADc7b62a67E0",
     "liquidation": "0x9f13335e769208a2545047aCb0ea386Cce7F5f8F",
     "collateral": ""
