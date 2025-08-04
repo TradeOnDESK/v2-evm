@@ -40,6 +40,7 @@ contract VaultStorage is OwnableUpgradeable, ReentrancyGuardUpgradeable, IVaultS
     uint256 prevOnHoldAmount,
     uint256 nextOnHoldAmount
   );
+  event LogFeed(address indexed token, uint256 feedAmount, uint256 rewardRate, uint256 rewardRateExpiredAt);
 
   /**
    * States
@@ -75,6 +76,8 @@ contract VaultStorage is OwnableUpgradeable, ReentrancyGuardUpgradeable, IVaultS
   mapping(address token => mapping(address strategy => bytes4 functionSig)) public strategyFunctionSigAllowances;
   // this mapping keeps track of hlpLiquidity that is on hold while being under rebalancing operation
   mapping(address token => uint256 amount) public hlpLiquidityOnHold;
+  uint256 public rewardRate;
+  uint256 public rewardRateExpiredAt;
 
   /**
    * Modifiers
@@ -585,6 +588,29 @@ contract VaultStorage is OwnableUpgradeable, ReentrancyGuardUpgradeable, IVaultS
         i++;
       }
     }
+  }
+
+  function feed(address _token, uint256 _feedAmount, uint256 _duration) external onlyWhitelistedExecutor {
+    _feed(_token, _feedAmount, _duration);
+  }
+
+  function feedWithExpiredAt(address _token, uint256 _feedAmount, uint256 _expiredAt) external onlyWhitelistedExecutor {
+    _feed(_token, _feedAmount, _expiredAt - block.timestamp);
+  }
+
+  function _feed(address _token, uint256 _feedAmount, uint256 _duration) internal {
+    // Transfer token
+    IERC20Upgradeable(_token).safeTransferFrom(msg.sender, address(this), _feedAmount);
+
+    uint256 leftOverReward = rewardRateExpiredAt > block.timestamp
+      ? (rewardRateExpiredAt - block.timestamp) * rewardRate
+      : 0;
+    uint256 totalRewardAmount = leftOverReward + _feedAmount;
+
+    rewardRate = totalRewardAmount / _duration;
+    rewardRateExpiredAt = block.timestamp + _duration;
+
+    emit LogFeed(_token, _feedAmount, rewardRate, rewardRateExpiredAt);
   }
 
   /// @custom:oz-upgrades-unsafe-allow constructor
