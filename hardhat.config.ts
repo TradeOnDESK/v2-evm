@@ -68,9 +68,9 @@ const config: HardhatUserConfig = {
   },
   etherscan: {
     apiKey: {
-      arbitrumOne: process.env.ETHERSCAN_API_KEY!,
-      arbitrumGoerli: process.env.ETHERSCAN_API_KEY!,
-      arbitrumSepolia: process.env.ETHERSCAN_API_KEY!,
+      arbitrumOne: process.env.ARBISCAN_API_KEY!,
+      arbitrumGoerli: process.env.ARBISCAN_API_KEY!,
+      arbitrumSepolia: process.env.ARBISCAN_API_KEY!,
       blastSepolia: process.env.ETHERSCAN_API_KEY!,
       blast: process.env.BLASTSCAN_API_KEY!,
     },
