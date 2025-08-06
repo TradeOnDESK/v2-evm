@@ -40,7 +40,13 @@ contract VaultStorage is OwnableUpgradeable, ReentrancyGuardUpgradeable, IVaultS
     uint256 prevOnHoldAmount,
     uint256 nextOnHoldAmount
   );
-  event LogFeed(address indexed token, uint256 feedAmount, uint256 rewardRate, uint256 rewardRateExpiredAt);
+  event LogFeed(
+    address indexed token,
+    uint256 feedAmount,
+    uint256 rewardDebt,
+    uint256 rewardDebtStartAt,
+    uint256 rewardDebtExpiredAt
+  );
 
   /**
    * States
@@ -76,8 +82,9 @@ contract VaultStorage is OwnableUpgradeable, ReentrancyGuardUpgradeable, IVaultS
   mapping(address token => mapping(address strategy => bytes4 functionSig)) public strategyFunctionSigAllowances;
   // this mapping keeps track of hlpLiquidity that is on hold while being under rebalancing operation
   mapping(address token => uint256 amount) public hlpLiquidityOnHold;
-  uint256 public rewardRate;
-  uint256 public rewardRateExpiredAt;
+  mapping(address token => uint256 rewardDebt) public rewardDebt;
+  mapping(address token => uint256 rewardDebtStartAt) public rewardDebtStartAt;
+  mapping(address token => uint256 rewardDebtExpiredAt) public rewardDebtExpiredAt;
 
   /**
    * Modifiers
@@ -204,7 +211,7 @@ contract VaultStorage is OwnableUpgradeable, ReentrancyGuardUpgradeable, IVaultS
     hlpLiquidityDebtUSDE30 -= _value;
   }
 
-  function addHLPLiquidity(address _token, uint256 _amount) external onlyWhitelistedExecutor {
+  function addHLPLiquidity(address _token, uint256 _amount) public onlyWhitelistedExecutor {
     hlpLiquidity[_token] += _amount;
   }
 
@@ -221,12 +228,12 @@ contract VaultStorage is OwnableUpgradeable, ReentrancyGuardUpgradeable, IVaultS
   }
 
   function removeHLPLiquidity(address _token, uint256 _amount) external onlyWhitelistedExecutor {
-    if (hlpLiquidity[_token] < _amount) revert IVaultStorage_HLPBalanceRemaining();
+    if (hlpLiquidity[_token] - getPendingRewardDebt(_token) < _amount) revert IVaultStorage_HLPBalanceRemaining();
     hlpLiquidity[_token] -= _amount;
   }
 
   function removeHLPLiquidityOnHold(address _token, uint256 _amount) external onlyWhitelistedExecutor {
-    if (hlpLiquidity[_token] < _amount) revert IVaultStorage_HLPBalanceRemaining();
+    if (hlpLiquidity[_token] - getPendingRewardDebt(_token) < _amount) revert IVaultStorage_HLPBalanceRemaining();
     hlpLiquidityOnHold[_token] += _amount;
     hlpLiquidity[_token] -= _amount;
   }
@@ -599,18 +606,34 @@ contract VaultStorage is OwnableUpgradeable, ReentrancyGuardUpgradeable, IVaultS
   }
 
   function _feed(address _token, uint256 _feedAmount, uint256 _duration) internal {
+    if (_feedAmount == 0) revert IVaultStorage_FeedAmountZero();
+    if (_duration == 0) revert IVaultStorage_DurationZero();
+
     // Transfer token
     IERC20Upgradeable(_token).safeTransferFrom(msg.sender, address(this), _feedAmount);
 
-    uint256 leftOverReward = rewardRateExpiredAt > block.timestamp
-      ? (rewardRateExpiredAt - block.timestamp) * rewardRate
+    // Add liquidity to HLP
+    addHLPLiquidity(_token, _feedAmount);
+    // Pull token from HLP
+    _pullToken(_token);
+
+    uint256 pendingRewardDebt = getPendingRewardDebt(_token);
+    uint256 totalRewardAmount = pendingRewardDebt + _feedAmount;
+
+    rewardDebt[_token] = totalRewardAmount;
+    rewardDebtStartAt[_token] = block.timestamp;
+    rewardDebtExpiredAt[_token] = block.timestamp + _duration;
+
+    emit LogFeed(_token, _feedAmount, rewardDebt[_token], rewardDebtStartAt[_token], rewardDebtExpiredAt[_token]);
+  }
+
+  function getPendingRewardDebt(address _token) public view returns (uint256) {
+    if (rewardDebt[_token] == 0) return 0;
+    uint256 leftOverReward = rewardDebtExpiredAt[_token] > block.timestamp
+      ? ((rewardDebtExpiredAt[_token] - block.timestamp) * rewardDebt[_token]) /
+        (rewardDebtExpiredAt[_token] - rewardDebtStartAt[_token])
       : 0;
-    uint256 totalRewardAmount = leftOverReward + _feedAmount;
-
-    rewardRate = totalRewardAmount / _duration;
-    rewardRateExpiredAt = block.timestamp + _duration;
-
-    emit LogFeed(_token, _feedAmount, rewardRate, rewardRateExpiredAt);
+    return leftOverReward;
   }
 
   /// @custom:oz-upgrades-unsafe-allow constructor

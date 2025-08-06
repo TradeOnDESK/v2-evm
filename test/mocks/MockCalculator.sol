@@ -30,6 +30,7 @@ contract MockCalculator is ICalculator {
   int256 fundingRateLong;
   int256 fundingRateShort;
   int256 globalPnlE30;
+  uint256 pendingBorrowingFeeE30;
 
   address public oracle;
 
@@ -83,6 +84,14 @@ contract MockCalculator is ICalculator {
 
   function setFundingRateShort(int256 _fundingRateShort) external {
     fundingRateShort = _fundingRateShort;
+  }
+
+  function setGlobalPnlE30(int256 _globalPnlE30) external {
+    globalPnlE30 = _globalPnlE30;
+  }
+
+  function setPendingBorrowingFeeE30(uint256 _pendingBorrowingFeeE30) external {
+    pendingBorrowingFeeE30 = _pendingBorrowingFeeE30;
   }
 
   // =========================================
@@ -172,7 +181,7 @@ contract MockCalculator is ICalculator {
   }
 
   function getRemoveLiquidityFeeBPS(
-    address /*_token*/,
+    address /*_tokenValueE30*/,
     uint256 /*_tokenValueE30*/,
     ConfigStorage /*_configStorage*/
   ) external pure returns (uint32) {
@@ -283,7 +292,9 @@ contract MockCalculator is ICalculator {
     uint256 _lastIncreaseTimestamp
   ) external pure returns (uint256) {}
 
-  function getPendingBorrowingFeeE30() public view virtual returns (uint256) {}
+  function getPendingBorrowingFeeE30() public view virtual returns (uint256) {
+    return pendingBorrowingFeeE30;
+  }
 
   function getGlobalMarketPnl(uint256 marketIndex, bool isLong) external view returns (int256) {}
 
