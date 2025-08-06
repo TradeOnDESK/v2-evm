@@ -8,6 +8,9 @@ import { Calculator_Base } from "./Calculator_Base.t.sol";
 import { IConfigStorage } from "@hmx/storages/interfaces/IConfigStorage.sol";
 import { IPerpStorage } from "@hmx/storages/interfaces/IPerpStorage.sol";
 import { console2 } from "forge-std/console2.sol";
+import { IVaultStorage } from "@hmx/storages/interfaces/IVaultStorage.sol";
+import { ICalculator } from "@hmx/contracts/interfaces/ICalculator.sol";
+import { Deployer } from "@hmx-test/libs/Deployer.sol";
 
 contract Calculator_GetAUME30Test is Calculator_Base {
   function setUp() public override {
@@ -430,5 +433,290 @@ contract Calculator_GetAUME30Test is Calculator_Base {
 
     uint256 actualAum = calculator.getAUME30(false);
     assertGt(actualAum, 6000000 * 1e30, "AUM should be greater when HLP liquidity on hold is included");
+  }
+
+  // =========================================
+  // | --- Feed Reward Debt AUM Tests ----- |
+  // =========================================
+
+  function testCorrectness_WhenGetAUME30WithFeedRewardBeforeTimePassed() external {
+    // Deploy a real VaultStorage for this test
+    IVaultStorage realVaultStorage = Deployer.deployVaultStorage(address(proxyAdmin));
+
+    // Deploy a new Calculator using the real VaultStorage
+    ICalculator realCalculator = Deployer.deployCalculator(
+      address(proxyAdmin),
+      address(mockOracle),
+      address(realVaultStorage),
+      address(mockPerpStorage),
+      address(configStorage)
+    );
+
+    // Set up service executor permissions
+    realVaultStorage.setServiceExecutors(address(this), true);
+
+    // Set up basic mock data
+    mockOracle.setPrice(wbtcAssetId, 50000 * 1e30);
+
+    // Add initial HLP liquidity using the real VaultStorage
+    wbtc.mint(address(realVaultStorage), 100 * 1e8); // Mint 100 BTC to VaultStorage
+    realVaultStorage.addHLPLiquidity(address(wbtc), 100 * 1e8); // 100 BTC base liquidity
+    realVaultStorage.pullToken(address(wbtc)); // Update totalAmount
+
+    // Set up minimal market data
+    mockPerpStorage.updateGlobalCounterTradeStates(
+      0,
+      0, // longPositionSize
+      0, // longAccumSE
+      0, // longAccumS2E
+      0, // shortPositionSize
+      0, // shortAccumSE
+      0 // shortAccumS2E
+    );
+
+    // Set asset class data with zero values
+    mockPerpStorage.updateAssetClass(
+      1,
+      IPerpStorage.AssetClass({
+        reserveValueE30: 0,
+        sumBorrowingRate: 0,
+        lastBorrowingTime: block.timestamp,
+        sumBorrowingFeeE30: 0,
+        sumSettledBorrowingFeeE30: 0
+      })
+    );
+
+    // Calculate expected AUM without reward debt
+    uint256 expectedAumWithoutReward = (100 * 1e8 * 50000 * 1e30) / 1e8; // 100 BTC * $50,000
+    uint256 actualAumWithoutReward = realCalculator.getAUME30(false);
+    assertEq(actualAumWithoutReward, expectedAumWithoutReward, "AUM should equal HLP value when no reward debt");
+
+    // Simulate feed reward: 10 BTC reward with 1 day duration
+    uint256 feedAmount = 10 * 1e8; // 10 BTC
+    uint256 duration = 86400; // 1 day
+
+    // Mint and approve tokens for feeding
+    wbtc.mint(address(this), feedAmount);
+    wbtc.approve(address(realVaultStorage), feedAmount);
+
+    // Perform the actual feed
+    realVaultStorage.feed(address(wbtc), feedAmount, duration);
+
+    // Check AUM immediately after feed (no time passed)
+    uint256 actualAumWithReward = realCalculator.getAUME30(false);
+
+    // AUM should be reduced because the full reward debt is still pending
+    // Total assets = 110 BTC (HLP) + 0 BTC (on hold) - 10 BTC (pending reward) = 100 BTC
+    uint256 expectedAumWithReward = (100 * 1e8 * 50000 * 1e30) / 1e8; // 100 BTC * $50,000
+    assertEq(
+      actualAumWithReward,
+      expectedAumWithReward,
+      "AUM should be reduced by full reward debt when no time has passed"
+    );
+  }
+
+  function testCorrectness_WhenGetAUME30WithFeedRewardAfterTimePassed() external {
+    // Set up basic mock data
+    mockOracle.setPrice(wbtcAssetId, 50000 * 1e30);
+    mockVaultStorage.setHlpLiquidity(address(wbtc), 100 * 1e8); // 100 BTC base liquidity
+
+    // Set up minimal market data
+    mockPerpStorage.updateGlobalCounterTradeStates(
+      0,
+      0, // longPositionSize
+      0, // longAccumSE
+      0, // longAccumS2E
+      0, // shortPositionSize
+      0, // shortAccumSE
+      0 // shortAccumS2E
+    );
+
+    mockVaultStorage.setGlobalBorrowingFeeDebt(0);
+    mockVaultStorage.setGlobalLossDebt(0);
+    mockVaultStorage.setHlpLiquidityDebtUSDE30(0);
+
+    // Set asset class data with zero values
+    mockPerpStorage.updateAssetClass(
+      1,
+      IPerpStorage.AssetClass({
+        reserveValueE30: 0,
+        sumBorrowingRate: 0,
+        lastBorrowingTime: block.timestamp,
+        sumBorrowingFeeE30: 0,
+        sumSettledBorrowingFeeE30: 0
+      })
+    );
+
+    // Simulate feed reward: 10 BTC reward with 1 day duration
+    uint256 feedAmount = 10 * 1e8; // 10 BTC
+    uint256 duration = 86400; // 1 day
+    uint256 startTime = block.timestamp;
+    uint256 expiredAt = startTime + duration;
+
+    // Set up reward debt state
+    mockVaultStorage.setRewardDebt(address(wbtc), feedAmount);
+    mockVaultStorage.setRewardDebtStartAt(address(wbtc), startTime);
+    mockVaultStorage.setRewardDebtExpiredAt(address(wbtc), expiredAt);
+
+    // Move time forward by half the duration
+    vm.warp(block.timestamp + duration / 2);
+
+    // Check AUM after half the time has passed
+    uint256 actualAumWithReward = calculator.getAUME30(false);
+
+    // After half the time, half the reward debt should be remaining
+    // Total assets = 100 BTC (HLP) + 0 BTC (on hold) - 5 BTC (remaining reward) = 95 BTC
+    uint256 expectedAumWithReward = (95 * 1e8 * 50000 * 1e30) / 1e8; // 95 BTC * $50,000
+    assertEq(actualAumWithReward, expectedAumWithReward, "AUM should be increased as reward debt decreases over time");
+  }
+
+  function testCorrectness_WhenGetAUME30WithFeedRewardAfterExpiry() external {
+    // Deploy a real VaultStorage for this test
+    IVaultStorage realVaultStorage = Deployer.deployVaultStorage(address(proxyAdmin));
+
+    // Deploy a new Calculator using the real VaultStorage
+    ICalculator realCalculator = Deployer.deployCalculator(
+      address(proxyAdmin),
+      address(mockOracle),
+      address(realVaultStorage),
+      address(mockPerpStorage),
+      address(configStorage)
+    );
+
+    // Set up service executor permissions
+    realVaultStorage.setServiceExecutors(address(this), true);
+
+    // Set up basic mock data
+    mockOracle.setPrice(wbtcAssetId, 50000 * 1e30);
+
+    // Add initial HLP liquidity using the real VaultStorage
+    wbtc.mint(address(realVaultStorage), 100 * 1e8); // Mint 100 BTC to VaultStorage
+    realVaultStorage.addHLPLiquidity(address(wbtc), 100 * 1e8); // 100 BTC base liquidity
+    realVaultStorage.pullToken(address(wbtc)); // Update totalAmount
+
+    // Set up minimal market data
+    mockPerpStorage.updateGlobalCounterTradeStates(
+      0,
+      0, // longPositionSize
+      0, // longAccumSE
+      0, // longAccumS2E
+      0, // shortPositionSize
+      0, // shortAccumSE
+      0 // shortAccumS2E
+    );
+
+    // Set asset class data with zero values
+    mockPerpStorage.updateAssetClass(
+      1,
+      IPerpStorage.AssetClass({
+        reserveValueE30: 0,
+        sumBorrowingRate: 0,
+        lastBorrowingTime: block.timestamp,
+        sumBorrowingFeeE30: 0,
+        sumSettledBorrowingFeeE30: 0
+      })
+    );
+
+    // Simulate feed reward: 10 BTC reward with 1 day duration
+    uint256 feedAmount = 10 * 1e8; // 10 BTC
+    uint256 duration = 86400; // 1 day
+
+    // Mint and approve tokens for feeding
+    wbtc.mint(address(this), feedAmount);
+    wbtc.approve(address(realVaultStorage), feedAmount);
+
+    // Perform the actual feed
+    realVaultStorage.feed(address(wbtc), feedAmount, duration);
+
+    // Move time forward beyond the expiry
+    vm.warp(block.timestamp + duration + 1);
+
+    // Check AUM after expiry
+    uint256 actualAumWithReward = realCalculator.getAUME30(false);
+
+    // After expiry, no reward debt should remain
+    // Total assets = 110 BTC (HLP) + 0 BTC (on hold) - 0 BTC (no remaining reward) = 110 BTC
+    uint256 expectedAumWithReward = (110 * 1e8 * 50000 * 1e30) / 1e8; // 110 BTC * $50,000
+    assertEq(actualAumWithReward, expectedAumWithReward, "AUM should return to full value after reward debt expires");
+  }
+
+  function testCorrectness_WhenGetAUME30WithMultipleFeedRewards() external {
+    // Set up basic mock data
+    mockOracle.setPrice(wbtcAssetId, 50000 * 1e30);
+    mockVaultStorage.setHlpLiquidity(address(wbtc), 100 * 1e8); // 100 BTC base liquidity
+
+    // Set up minimal market data
+    mockPerpStorage.updateGlobalCounterTradeStates(
+      0,
+      0, // longPositionSize
+      0, // longAccumSE
+      0, // longAccumS2E
+      0, // shortPositionSize
+      0, // shortAccumSE
+      0 // shortAccumS2E
+    );
+
+    mockVaultStorage.setGlobalBorrowingFeeDebt(0);
+    mockVaultStorage.setGlobalLossDebt(0);
+    mockVaultStorage.setHlpLiquidityDebtUSDE30(0);
+
+    // Set asset class data with zero values
+    mockPerpStorage.updateAssetClass(
+      1,
+      IPerpStorage.AssetClass({
+        reserveValueE30: 0,
+        sumBorrowingRate: 0,
+        lastBorrowingTime: block.timestamp,
+        sumBorrowingFeeE30: 0,
+        sumSettledBorrowingFeeE30: 0
+      })
+    );
+
+    // Simulate multiple feed rewards
+    uint256 feedAmount1 = 5 * 1e8; // 5 BTC
+    uint256 feedAmount2 = 3 * 1e8; // 3 BTC
+    uint256 duration1 = 86400; // 1 day
+    uint256 duration2 = 43200; // 12 hours
+    uint256 startTime = block.timestamp;
+    uint256 expiredAt1 = startTime + duration1;
+    uint256 expiredAt2 = startTime + duration2;
+
+    // Set up first reward debt state
+    mockVaultStorage.setRewardDebt(address(wbtc), feedAmount1);
+    mockVaultStorage.setRewardDebtStartAt(address(wbtc), startTime);
+    mockVaultStorage.setRewardDebtExpiredAt(address(wbtc), expiredAt1);
+
+    // Check AUM with first reward
+    uint256 actualAumWithFirstReward = calculator.getAUME30(false);
+    uint256 expectedAumWithFirstReward = (95 * 1e8 * 50000 * 1e30) / 1e8; // 95 BTC * $50,000
+    assertEq(actualAumWithFirstReward, expectedAumWithFirstReward, "AUM should be reduced by first reward debt");
+
+    // Move time forward and add second reward
+    vm.warp(block.timestamp + 3600); // 1 hour later
+    mockVaultStorage.setRewardDebt(address(wbtc), feedAmount1 + feedAmount2); // Total reward debt
+    mockVaultStorage.setRewardDebtExpiredAt(address(wbtc), expiredAt2); // Use second expiry
+
+    // Check AUM with both rewards
+    uint256 actualAumWithBothRewards = calculator.getAUME30(false);
+    // Calculate expected reward debt after 1 hour: (8 BTC * (43200 - 3600) / 43200) = 7.33 BTC remaining
+    uint256 remainingRewardDebt = ((feedAmount1 + feedAmount2) * (expiredAt2 - block.timestamp)) /
+      (expiredAt2 - startTime);
+    uint256 expectedAumWithBothRewards = ((100 * 1e8 - remainingRewardDebt) * 50000 * 1e30) / 1e8;
+    assertEq(actualAumWithBothRewards, expectedAumWithBothRewards, "AUM should be reduced by calculated reward debt");
+
+    // Move to after first expiry but before second
+    vm.warp(block.timestamp + duration2 / 2);
+    uint256 actualAumAfterFirstExpiry = calculator.getAUME30(false);
+    assertGt(actualAumAfterFirstExpiry, expectedAumWithBothRewards, "AUM should increase as first reward expires");
+
+    // Move to after both expiries
+    vm.warp(block.timestamp + duration2);
+    uint256 actualAumAfterBothExpiries = calculator.getAUME30(false);
+    uint256 expectedAumAfterBothExpiries = (100 * 1e8 * 50000 * 1e30) / 1e8; // 100 BTC * $50,000
+    assertEq(
+      actualAumAfterBothExpiries,
+      expectedAumAfterBothExpiries,
+      "AUM should return to full value after all rewards expire"
+    );
   }
 }

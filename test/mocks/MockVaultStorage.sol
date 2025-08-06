@@ -13,6 +13,11 @@ contract MockVaultStorage {
   mapping(address => uint256) public hlpLiquidityOnHold;
   mapping(address => uint256) public pendingRewardDebt;
 
+  // Feed-related state variables
+  mapping(address => uint256) public rewardDebt;
+  mapping(address => uint256) public rewardDebtStartAt;
+  mapping(address => uint256) public rewardDebtExpiredAt;
+
   uint256 public hlpLiquidityDebtUSDE30;
   uint256 public globalBorrowingFeeDebt;
   uint256 public globalLossDebt;
@@ -53,6 +58,19 @@ contract MockVaultStorage {
     globalLossDebt = _amount;
   }
 
+  // Feed-related setters
+  function setRewardDebt(address _token, uint256 _amount) external {
+    rewardDebt[_token] = _amount;
+  }
+
+  function setRewardDebtStartAt(address _token, uint256 _timestamp) external {
+    rewardDebtStartAt[_token] = _timestamp;
+  }
+
+  function setRewardDebtExpiredAt(address _token, uint256 _timestamp) external {
+    rewardDebtExpiredAt[_token] = _timestamp;
+  }
+
   // =========================================
   // | ---------- Getter ------------------- |
   // =========================================
@@ -62,6 +80,17 @@ contract MockVaultStorage {
   }
 
   function getPendingRewardDebt(address _token) external view returns (uint256) {
-    return pendingRewardDebt[_token];
+    // If no reward debt exists, return 0
+    if (rewardDebt[_token] == 0) return 0;
+
+    // If current time is before expiry, calculate remaining reward
+    if (rewardDebtExpiredAt[_token] > block.timestamp) {
+      uint256 leftOverReward = ((rewardDebtExpiredAt[_token] - block.timestamp) * rewardDebt[_token]) /
+        (rewardDebtExpiredAt[_token] - rewardDebtStartAt[_token]);
+      return leftOverReward;
+    }
+
+    // If current time is after expiry, return 0
+    return 0;
   }
 }
