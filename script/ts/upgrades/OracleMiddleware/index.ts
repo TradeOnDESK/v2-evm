@@ -2,7 +2,7 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { ethers, tenderly, upgrades, network } from "hardhat";
 import { getConfig, writeConfigFile } from "../../utils/config";
-import { getImplementationAddress } from "@openzeppelin/upgrades-core";
+import { getImplementationAddress } from "@openzeppelin-4.8.1/upgrades-core";
 
 const BigNumber = ethers.BigNumber;
 const config = getConfig();

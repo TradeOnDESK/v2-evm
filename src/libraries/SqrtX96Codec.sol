@@ -4,7 +4,7 @@
 
 pragma solidity 0.8.18;
 
-import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
+import { SafeCast } from "@openzeppelin-4.8.1/contracts/utils/math/SafeCast.sol";
 import { FixedPointMathLib } from "@solmate/utils/FixedPointMathLib.sol";
 
 import { FullMath } from "@hmx/libraries/FullMath.sol";

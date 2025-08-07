@@ -1,6 +1,6 @@
 import { ethers, tenderly, upgrades, network } from "hardhat";
 import { getConfig, writeConfigFile } from "../../utils/config";
-import { getImplementationAddress } from "@openzeppelin/upgrades-core";
+import { getImplementationAddress } from "@openzeppelin-4.8.1/upgrades-core";
 import { Calculator__factory, ConfigStorage__factory, PerpStorage__factory } from "../../../../typechain";
 
 const BigNumber = ethers.BigNumber;

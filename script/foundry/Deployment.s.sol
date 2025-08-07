@@ -7,7 +7,7 @@ pragma solidity 0.8.18;
 import { IPyth } from "pyth-sdk-solidity/IPyth.sol";
 import { OracleMiddleware } from "@hmx/oracles/OracleMiddleware.sol";
 import { PythAdapter } from "@hmx/oracles/PythAdapter.sol";
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { IERC20 } from "@openzeppelin-4.8.1/contracts/token/ERC20/IERC20.sol";
 import { IGmxGlpManager } from "@hmx/interfaces/gmx/IGmxGlpManager.sol";
 import { IOracleAdapter } from "@hmx/oracles/interfaces/IOracleAdapter.sol";
 import { StakedGlpOracleAdapter } from "@hmx/oracles/StakedGlpOracleAdapter.sol";

@@ -5,9 +5,9 @@
 pragma solidity 0.8.18;
 
 // bases
-import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
-import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import { Ownable } from "@openzeppelin-4.8.1/contracts/access/Ownable.sol";
+import { ERC20 } from "@openzeppelin-4.8.1/contracts/token/ERC20/ERC20.sol";
+import { SafeERC20 } from "@openzeppelin-4.8.1/contracts/token/ERC20/utils/SafeERC20.sol";
 
 // interfaces
 import { IPermit2 } from "@hmx/interfaces/uniswap/IPermit2.sol";

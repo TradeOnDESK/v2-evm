@@ -6,7 +6,7 @@ pragma solidity 0.8.18;
 
 import { Test } from "forge-std/Test.sol";
 import { PythStructs } from "pyth-sdk-solidity/IPyth.sol";
-import { ProxyAdmin } from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
+import { ProxyAdmin } from "@openzeppelin-4.8.1/contracts/proxy/transparent/ProxyAdmin.sol";
 import { Deployer, IIntentHandler, IGasService } from "@hmx-test/libs/Deployer.sol";
 import { OnChainPriceLens } from "@hmx/oracles/OnChainPriceLens.sol";
 import { CalcPriceLens } from "@hmx/oracles/CalcPriceLens.sol";

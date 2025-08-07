@@ -11,7 +11,7 @@ import "forge-std/console.sol";
 import { ILiquidityHandler } from "@hmx/handlers/interfaces/ILiquidityHandler.sol";
 import { LiquidityHandler } from "@hmx/handlers/LiquidityHandler.sol";
 import { IEcoPythCalldataBuilder } from "@hmx/oracles/interfaces/IEcoPythCalldataBuilder.sol";
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { IERC20 } from "@openzeppelin-4.8.1/contracts/token/ERC20/IERC20.sol";
 
 contract Smoke_Liquidity is ForkEnv {
   function addLiquidity() external {

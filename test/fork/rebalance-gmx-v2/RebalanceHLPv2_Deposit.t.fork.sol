@@ -12,7 +12,7 @@ import { RebalanceHLPv2Service_BaseForkTest } from "@hmx-test/fork/rebalance-gmx
 import { MockEcoPyth } from "@hmx-test/mocks/MockEcoPyth.sol";
 
 /// HMX
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { IERC20 } from "@openzeppelin-4.8.1/contracts/token/ERC20/IERC20.sol";
 import { IWNative } from "@hmx/interfaces/IWNative.sol";
 import { IConfigStorage } from "@hmx/storages/interfaces/IConfigStorage.sol";
 import { IPerpStorage } from "@hmx/storages/interfaces/IPerpStorage.sol";

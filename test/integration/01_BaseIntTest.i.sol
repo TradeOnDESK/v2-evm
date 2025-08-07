@@ -17,8 +17,8 @@ import { EcoPyth } from "@hmx/oracles/EcoPyth.sol";
 import { IEcoPyth } from "@hmx/oracles/interfaces/IEcoPyth.sol";
 
 // Openzeppelin
-import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { ERC20 } from "@openzeppelin-4.8.1/contracts/token/ERC20/ERC20.sol";
+import { IERC20 } from "@openzeppelin-4.8.1/contracts/token/ERC20/IERC20.sol";
 import { ERC20Upgradeable } from "@openzeppelin-upgradeable/contracts/token/ERC20/ERC20Upgradeable.sol";
 import { SafeERC20Upgradeable } from "@openzeppelin-upgradeable/contracts/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import { IERC20Upgradeable } from "@openzeppelin-upgradeable/contracts/token/ERC20/IERC20Upgradeable.sol";
@@ -71,8 +71,8 @@ import { MarketTester } from "@hmx-test/testers/MarketTester.sol";
 import { PositionTester02 } from "@hmx-test/testers/PositionTester02.sol";
 import { TradeTester } from "@hmx-test/testers/TradeTester.sol";
 
-import { ProxyAdmin } from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
-import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import { ProxyAdmin } from "@openzeppelin-4.8.1/contracts/proxy/transparent/ProxyAdmin.sol";
+import { ERC20 } from "@openzeppelin-4.8.1/contracts/token/ERC20/ERC20.sol";
 import { AdaptiveFeeCalculator } from "@hmx/contracts/AdaptiveFeeCalculator.sol";
 import { OrderbookOracle } from "@hmx/oracles/OrderbookOracle.sol";
 

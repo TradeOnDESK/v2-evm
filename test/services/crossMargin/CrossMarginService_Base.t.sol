@@ -4,7 +4,7 @@
 
 pragma solidity 0.8.18;
 
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { IERC20 } from "@openzeppelin-4.8.1/contracts/token/ERC20/IERC20.sol";
 import { BaseTest, IConfigStorage, MockErc20 } from "@hmx-test/base/BaseTest.sol";
 import { Deployer } from "@hmx-test/libs/Deployer.sol";
 

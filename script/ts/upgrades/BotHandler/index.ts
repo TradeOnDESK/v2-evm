@@ -2,7 +2,7 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { ethers, tenderly, upgrades, network, getChainId, run } from "hardhat";
 import { getConfig, loadConfig, writeConfigFile } from "../../utils/config";
-import { getImplementationAddress } from "@openzeppelin/upgrades-core";
+import { getImplementationAddress } from "@openzeppelin-4.8.1/upgrades-core";
 import signers from "../../entities/signers";
 import ProxyAdminWrapper from "../../wrappers/ProxyAdminWrapper";
 

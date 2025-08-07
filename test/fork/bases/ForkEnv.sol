@@ -9,8 +9,8 @@ import { stdJson } from "forge-std/StdJson.sol";
 import { Test } from "forge-std/Test.sol";
 
 /// OZ
-import { ProxyAdmin } from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { ProxyAdmin } from "@openzeppelin-4.8.1/contracts/proxy/transparent/ProxyAdmin.sol";
+import { IERC20 } from "@openzeppelin-4.8.1/contracts/token/ERC20/IERC20.sol";
 
 /// HMX Tests
 import { MockEcoPyth } from "@hmx-test/mocks/MockEcoPyth.sol";

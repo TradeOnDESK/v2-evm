@@ -5,7 +5,7 @@
 pragma solidity 0.8.18;
 
 import { IGmxGlpManager } from "@hmx/interfaces/gmx/IGmxGlpManager.sol";
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { IERC20 } from "@openzeppelin-4.8.1/contracts/token/ERC20/IERC20.sol";
 import { IPriceAdapter } from "@hmx/oracles/interfaces/IPriceAdapter.sol";
 
 contract GlpPriceAdapter is IPriceAdapter {

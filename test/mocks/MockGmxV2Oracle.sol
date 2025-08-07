@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.18;
 
-import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import { ERC20 } from "@openzeppelin-4.8.1/contracts/token/ERC20/ERC20.sol";
 import { IGmxV2Types } from "@hmx/interfaces/gmx-v2/IGmxV2Types.sol";
 import { IGmxV2Oracle } from "@hmx/interfaces/gmx-v2/IGmxV2Oracle.sol";
 

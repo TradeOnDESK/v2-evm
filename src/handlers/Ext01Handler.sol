@@ -7,7 +7,7 @@ pragma solidity 0.8.18;
 /// Bases
 import { OwnableUpgradeable } from "@openzeppelin-upgradeable/contracts/access/OwnableUpgradeable.sol";
 import { ReentrancyGuardUpgradeable } from "@openzeppelin-upgradeable/contracts/security/ReentrancyGuardUpgradeable.sol";
-import { EnumerableSet } from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+import { EnumerableSet } from "@openzeppelin-4.8.1/contracts/utils/structs/EnumerableSet.sol";
 
 /// Interfaces
 import { IExt01Handler } from "@hmx/handlers/interfaces/IExt01Handler.sol";

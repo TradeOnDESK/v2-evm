@@ -6,8 +6,8 @@ pragma solidity 0.8.18;
 
 import { BaseIntTest_WithActions } from "@hmx-test/integration/99_BaseIntTest_WithActions.i.sol";
 
-// import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+// import { ERC20 } from "@openzeppelin-4.8.1/contracts/token/ERC20/ERC20.sol";
+import { ERC20 } from "@openzeppelin-4.8.1/contracts/token/ERC20/ERC20.sol";
 import { MockErc20 } from "@hmx-test/mocks/MockErc20.sol";
 import { LiquidityTester } from "@hmx-test/testers/LiquidityTester.sol";
 import { ILiquidityHandler } from "@hmx/handlers/interfaces/ILiquidityHandler.sol";
@@ -20,7 +20,6 @@ contract TC40 is BaseIntTest_WithActions {
   bytes[] internal updatePriceData;
 
   function testCorrectness_TC40_TransferCollateralSubAccount_WETH() external {
-
     address _tokenAddress = address(weth);
 
     vm.startPrank(EXT01_EXECUTOR);
@@ -53,16 +52,16 @@ contract TC40 is BaseIntTest_WithActions {
     // BOB add liquidity
     addLiquidity(BOB, usdc, 10_000_000 * 1e6, executionOrderFee, tickPrices, publishTimeDiff, block.timestamp, true);
 
-    // Deposit Collateral   
+    // Deposit Collateral
     depositCollateral(ALICE, 0, ERC20(_tokenAddress), 10 ether, true);
 
-    // Try transfer bad amount (0) 
+    // Try transfer bad amount (0)
     {
       vm.expectRevert(abi.encodeWithSignature("IExt01Handler_BadAmount()"));
       transferCollateralSubAccount(ALICE, 0, 1, _tokenAddress, 0);
     }
 
-    // Try transfer too much amount 
+    // Try transfer too much amount
     {
       uint256[] memory _orderIndexes = transferCollateralSubAccount(ALICE, 0, 1, _tokenAddress, 30 ether);
       vm.startPrank(EXT01_EXECUTOR);
@@ -87,9 +86,9 @@ contract TC40 is BaseIntTest_WithActions {
     {
       vm.expectRevert(abi.encodeWithSignature("IExt01Handler_SelfTransfer()"));
       transferCollateralSubAccount(ALICE, 0, 0, _tokenAddress, 10 ether);
-    } 
+    }
 
-    // Try transfer collateral btw. subAccount 
+    // Try transfer collateral btw. subAccount
     {
       address _aliceSubAccount0 = getSubAccount(ALICE, 0);
       address _aliceSubAccount1 = getSubAccount(ALICE, 1);
@@ -114,7 +113,7 @@ contract TC40 is BaseIntTest_WithActions {
 
     // Market order long
     {
-      marketBuy(ALICE, 1, wethMarketIndex, 10_000 * 1e30, _tokenAddress, tickPrices, publishTimeDiff, block.timestamp); 
+      marketBuy(ALICE, 1, wethMarketIndex, 10_000 * 1e30, _tokenAddress, tickPrices, publishTimeDiff, block.timestamp);
     }
 
     // Try transfer collteral
@@ -181,10 +180,12 @@ contract TC40 is BaseIntTest_WithActions {
       vm.stopPrank();
     }
   }
+
   function testCorrectness_TC40_TransferCollateralSubAccount_WBTC() external {
     wbtc.mint(ALICE, 0.5 * 1e8);
     _testTransferCollateralSubAccountERC20Helper(address(wbtc), 0.5 * 1e8, 100_000 * 1e30, 0.25 * 1e8, 0.23 * 1e8);
   }
+
   function testCorrectness_TC40_TransferCollateralSubAccount_USDC() external {
     usdc.mint(ALICE, 10_000 * 1e6);
     _testTransferCollateralSubAccountERC20Helper(address(usdc), 10_000 * 1e6, 100_000 * 1e30, 5_000 * 1e6, 4_500 * 1e6);
@@ -197,7 +198,6 @@ contract TC40 is BaseIntTest_WithActions {
     uint256 _transfer1,
     uint256 _transfer2
   ) internal {
-
     tickPrices[1] = 99039; // WBTC tick price $20,000
     tickPrices[2] = 0; // USDC tick price $1
     tickPrices[6] = 48285; // JPY tick price $125
@@ -226,16 +226,16 @@ contract TC40 is BaseIntTest_WithActions {
     // BOB add liquidity
     addLiquidity(BOB, usdc, 1_000_000 * 1e6, executionOrderFee, tickPrices, publishTimeDiff, block.timestamp, true);
 
-    // Deposit Collateral   
+    // Deposit Collateral
     depositCollateral(ALICE, 0, ERC20(_token), _deltAmount);
 
-    // Try transfer bad amount (0) 
+    // Try transfer bad amount (0)
     {
       vm.expectRevert(abi.encodeWithSignature("IExt01Handler_BadAmount()"));
       transferCollateralSubAccount(ALICE, 0, 1, _token, 0);
     }
 
-    // Try transfer too much amount 
+    // Try transfer too much amount
     {
       uint256[] memory _orderIndexes = transferCollateralSubAccount(ALICE, 0, 1, _token, 1e30);
       vm.startPrank(EXT01_EXECUTOR);
@@ -260,9 +260,9 @@ contract TC40 is BaseIntTest_WithActions {
     {
       vm.expectRevert(abi.encodeWithSignature("IExt01Handler_SelfTransfer()"));
       transferCollateralSubAccount(ALICE, 0, 0, _token, _deltAmount);
-    } 
+    }
 
-    // Try transfer collateral btw. subAccount 
+    // Try transfer collateral btw. subAccount
     {
       // Get SubAccount address
       address _aliceSubAccount0 = getSubAccount(ALICE, 0);

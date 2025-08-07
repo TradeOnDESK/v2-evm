@@ -4,7 +4,7 @@
 
 pragma solidity 0.8.18;
 
-import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
+import { Ownable } from "@openzeppelin-4.8.1/contracts/access/Ownable.sol";
 import { HMXLib } from "@hmx/libraries/HMXLib.sol";
 import { ConfigStorage } from "@hmx/storages/ConfigStorage.sol";
 import { PerpStorage } from "@hmx/storages/PerpStorage.sol";

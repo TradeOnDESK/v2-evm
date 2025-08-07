@@ -11,7 +11,7 @@ import { ERC20Upgradeable } from "@openzeppelin-upgradeable/contracts/token/ERC2
 // Interfaces
 import { IHLP } from "./interfaces/IHLP.sol";
 import { IRebaser } from "./interfaces/IRebaser.sol";
-import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
+import { Math } from "@openzeppelin-4.8.1/contracts/utils/math/Math.sol";
 
 contract HLP is ReentrancyGuardUpgradeable, OwnableUpgradeable, ERC20Upgradeable {
   mapping(address user => bool isMinter) public minters;

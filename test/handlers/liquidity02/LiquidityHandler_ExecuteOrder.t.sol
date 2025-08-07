@@ -6,7 +6,7 @@ pragma solidity 0.8.18;
 
 import { LiquidityHandler_Base02, IConfigStorage, IPerpStorage } from "./LiquidityHandler_Base02.t.sol";
 import { ILiquidityHandler02 } from "@hmx/handlers/interfaces/ILiquidityHandler02.sol";
-import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import { ERC20 } from "@openzeppelin-4.8.1/contracts/token/ERC20/ERC20.sol";
 
 import { MockAccountAbstraction } from "../../mocks/MockAccountAbstraction.sol";
 import { MockEntryPoint } from "../../mocks/MockEntryPoint.sol";

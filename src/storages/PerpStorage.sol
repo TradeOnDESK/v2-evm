@@ -6,7 +6,7 @@ pragma solidity 0.8.18;
 
 import { OwnableUpgradeable } from "@openzeppelin-upgradeable/contracts/access/OwnableUpgradeable.sol";
 import { ReentrancyGuardUpgradeable } from "@openzeppelin-upgradeable/contracts/security/ReentrancyGuardUpgradeable.sol";
-import { EnumerableSet } from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+import { EnumerableSet } from "@openzeppelin-4.8.1/contracts/utils/structs/EnumerableSet.sol";
 
 // interfaces
 import { IPerpStorage } from "./interfaces/IPerpStorage.sol";

@@ -5,7 +5,7 @@
 pragma solidity 0.8.18;
 
 /// OZ
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { IERC20 } from "@openzeppelin-4.8.1/contracts/token/ERC20/IERC20.sol";
 
 /// HMX Tests
 import { Cheats } from "@hmx-test/base/Cheats.sol";

@@ -6,7 +6,7 @@ pragma solidity 0.8.18;
 
 import { BaseIntTest_WithActions } from "@hmx-test/integration/99_BaseIntTest_WithActions.i.sol";
 
-import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import { ERC20 } from "@openzeppelin-4.8.1/contracts/token/ERC20/ERC20.sol";
 import { MockErc20 } from "@hmx-test/mocks/MockErc20.sol";
 import { LiquidityTester } from "@hmx-test/testers/LiquidityTester.sol";
 import { ILiquidityHandler } from "@hmx/handlers/interfaces/ILiquidityHandler.sol";
@@ -15,14 +15,12 @@ import { IConfigStorage } from "@hmx/storages/interfaces/IConfigStorage.sol";
 import { ILimitTradeHandler } from "@hmx/handlers/interfaces/ILimitTradeHandler.sol";
 import { IExt01Handler } from "@hmx/handlers/interfaces/IExt01Handler.sol";
 
-
 contract TC41 is BaseIntTest_WithActions {
   bytes[] internal updatePriceData;
   uint8 subAccountId = 0;
 
   // Batch cancel multiple order
   function testCorrectness_TC41_batchCancelLimitTradeOrder() external {
-
     address _tokenAddress = address(weth);
 
     // T0: Initialized state
@@ -41,7 +39,7 @@ contract TC41 is BaseIntTest_WithActions {
     // BOB add liquidity
     addLiquidity(BOB, usdc, 10_000_000 * 1e6, executionOrderFee, tickPrices, publishTimeDiff, block.timestamp, true);
 
-    // Deposit Collateral   
+    // Deposit Collateral
     depositCollateral(ALICE, subAccountId, ERC20(_tokenAddress), 10 ether, true);
 
     address _aliceSubAccount0 = getSubAccount(ALICE, subAccountId);
@@ -49,41 +47,41 @@ contract TC41 is BaseIntTest_WithActions {
     // Create Limit Orders
     {
       createLimitTradeOrder({
-        _account: ALICE, 
-        _subAccountId: subAccountId, 
-        _marketIndex: wethMarketIndex, 
-        _sizeDelta: 1_000 * 1e30, 
-        _triggerPrice: 0, 
-        _acceptablePrice: type(uint256).max, 
-        _triggerAboveThreshold: true, 
-        _executionFee: 0.0001 ether, 
-        _reduceOnly: false, 
+        _account: ALICE,
+        _subAccountId: subAccountId,
+        _marketIndex: wethMarketIndex,
+        _sizeDelta: 1_000 * 1e30,
+        _triggerPrice: 0,
+        _acceptablePrice: type(uint256).max,
+        _triggerAboveThreshold: true,
+        _executionFee: 0.0001 ether,
+        _reduceOnly: false,
         _tpToken: _tokenAddress
-        }); 
+      });
       createLimitTradeOrder({
-        _account: ALICE, 
-        _subAccountId: subAccountId, 
-        _marketIndex: wbtcMarketIndex, 
-        _sizeDelta: 1_000 * 1e30, 
-        _triggerPrice: 0, 
-        _acceptablePrice: type(uint256).max, 
-        _triggerAboveThreshold: true, 
-        _executionFee: 0.0001 ether, 
-        _reduceOnly: false, 
+        _account: ALICE,
+        _subAccountId: subAccountId,
+        _marketIndex: wbtcMarketIndex,
+        _sizeDelta: 1_000 * 1e30,
+        _triggerPrice: 0,
+        _acceptablePrice: type(uint256).max,
+        _triggerAboveThreshold: true,
+        _executionFee: 0.0001 ether,
+        _reduceOnly: false,
         _tpToken: _tokenAddress
-        }); 
+      });
       createLimitTradeOrder({
-        _account: ALICE, 
-        _subAccountId: subAccountId, 
-        _marketIndex: jpyMarketIndex, 
-        _sizeDelta: 1_000 * 1e30, 
-        _triggerPrice: 0, 
-        _acceptablePrice: type(uint256).max, 
-        _triggerAboveThreshold: true, 
-        _executionFee: 0.0001 ether, 
-        _reduceOnly: false, 
+        _account: ALICE,
+        _subAccountId: subAccountId,
+        _marketIndex: jpyMarketIndex,
+        _sizeDelta: 1_000 * 1e30,
+        _triggerPrice: 0,
+        _acceptablePrice: type(uint256).max,
+        _triggerAboveThreshold: true,
+        _executionFee: 0.0001 ether,
+        _reduceOnly: false,
         _tpToken: _tokenAddress
-        }); 
+      });
     }
 
     // Check orders length after create
@@ -97,10 +95,14 @@ contract TC41 is BaseIntTest_WithActions {
     {
       vm.startPrank(ALICE);
       // Get all limit order
-      ILimitTradeHandler.LimitOrder[] memory _orders = limitTradeHandler.getAllActiveOrdersBySubAccount(_aliceSubAccount0, 5, 0);
+      ILimitTradeHandler.LimitOrder[] memory _orders = limitTradeHandler.getAllActiveOrdersBySubAccount(
+        _aliceSubAccount0,
+        5,
+        0
+      );
       uint256[] memory _orderIndexes = new uint256[](_orders.length);
       // Populate _orderIndexes with order get
-      for (uint256 _i; _i < _orders.length;) {
+      for (uint256 _i; _i < _orders.length; ) {
         _orderIndexes[_i] = _orders[_i].orderIndex;
         unchecked {
           ++_i;
@@ -143,7 +145,11 @@ contract TC41 is BaseIntTest_WithActions {
     assertEq(limitOrder.account, ALICE);
 
     // Get all limit order
-    ILimitTradeHandler.LimitOrder[] memory _orders = limitTradeHandler.getAllActiveOrdersBySubAccount(_aliceSubAccount0, 5, 0);
+    ILimitTradeHandler.LimitOrder[] memory _orders = limitTradeHandler.getAllActiveOrdersBySubAccount(
+      _aliceSubAccount0,
+      5,
+      0
+    );
     uint256[] memory _orderIndexes = new uint256[](1);
     // Populate _orderIndexes with order get
     _orderIndexes[0] = _orders[0].orderIndex;
@@ -179,7 +185,11 @@ contract TC41 is BaseIntTest_WithActions {
     assertEq(limitTradeHandler.getAllActiveOrdersBySubAccount(_aliceSubAccount0, 5, 0).length, 1);
 
     // Get all limit order
-    ILimitTradeHandler.LimitOrder[] memory _orders = limitTradeHandler.getAllActiveOrdersBySubAccount(_aliceSubAccount0, 5, 0);
+    ILimitTradeHandler.LimitOrder[] memory _orders = limitTradeHandler.getAllActiveOrdersBySubAccount(
+      _aliceSubAccount0,
+      5,
+      0
+    );
     uint256[] memory _orderIndexes = new uint256[](2);
     // Populate _orderIndexes with order get
     _orderIndexes[0] = _orders[0].orderIndex;
@@ -189,6 +199,10 @@ contract TC41 is BaseIntTest_WithActions {
     limitTradeHandler.batchCancelOrders(ALICE, subAccountId, _orderIndexes);
 
     // Order still not cancelled
-    assertEq(limitTradeHandler.getAllActiveOrdersBySubAccount(_aliceSubAccount0, 5, 0).length, 1, "Order should not be cancelled");
+    assertEq(
+      limitTradeHandler.getAllActiveOrdersBySubAccount(_aliceSubAccount0, 5, 0).length,
+      1,
+      "Order should not be cancelled"
+    );
   }
 }

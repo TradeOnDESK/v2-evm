@@ -11,7 +11,7 @@ import { PerpStorage } from "@hmx/storages/PerpStorage.sol";
 import { VaultStorage } from "@hmx/storages/VaultStorage.sol";
 import { HLP } from "@hmx/contracts/HLP.sol";
 import { Deployer } from "@hmx-test/libs/Deployer.sol";
-import { ProxyAdmin } from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
+import { ProxyAdmin } from "@openzeppelin-4.8.1/contracts/proxy/transparent/ProxyAdmin.sol";
 
 contract DeployConfigStorage is ConfigJsonRepo {
   function run() public {

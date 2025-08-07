@@ -30,7 +30,7 @@ import { IPerpStorage } from "@hmx/storages/interfaces/IPerpStorage.sol";
 import { IConfigStorage } from "@hmx/storages/interfaces/IConfigStorage.sol";
 import { ConfigStorage } from "@hmx/storages/ConfigStorage.sol";
 
-import { TransparentUpgradeableProxy } from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
+import { TransparentUpgradeableProxy } from "@openzeppelin-4.8.1/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 
 import { HMXLib } from "@hmx/libraries/HMXLib.sol";
 import { ForkEnv } from "@hmx-test/fork/bases/ForkEnv.sol";

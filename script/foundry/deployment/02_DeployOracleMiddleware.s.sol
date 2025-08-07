@@ -11,7 +11,7 @@ import { IOracleAdapter } from "@hmx/oracles/interfaces/IOracleAdapter.sol";
 import { OracleMiddleware } from "@hmx/oracles/OracleMiddleware.sol";
 
 import { Deployer } from "@hmx-test/libs/Deployer.sol";
-import { ProxyAdmin } from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
+import { ProxyAdmin } from "@openzeppelin-4.8.1/contracts/proxy/transparent/ProxyAdmin.sol";
 
 contract DeployOracleMiddleware is ConfigJsonRepo {
   function run() public {

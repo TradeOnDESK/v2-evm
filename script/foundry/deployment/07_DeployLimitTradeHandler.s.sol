@@ -11,7 +11,7 @@ import { CrossMarginHandler } from "@hmx/handlers/CrossMarginHandler.sol";
 import { LimitTradeHandler } from "@hmx/handlers/LimitTradeHandler.sol";
 import { LiquidityHandler } from "@hmx/handlers/LiquidityHandler.sol";
 import { Deployer } from "@hmx-test/libs/Deployer.sol";
-import { ProxyAdmin } from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
+import { ProxyAdmin } from "@openzeppelin-4.8.1/contracts/proxy/transparent/ProxyAdmin.sol";
 
 contract DeployHandlers is ConfigJsonRepo {
   struct ContractAddress {

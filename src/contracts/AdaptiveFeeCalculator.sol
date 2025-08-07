@@ -6,7 +6,7 @@ pragma solidity 0.8.18;
 
 import { ABDKMath64x64 } from "@abdk/ABDKMath64x64.sol";
 import { HMXLib } from "@hmx/libraries/HMXLib.sol";
-import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
+import { Ownable } from "@openzeppelin-4.8.1/contracts/access/Ownable.sol";
 
 contract AdaptiveFeeCalculator is Ownable {
   using ABDKMath64x64 for int128;

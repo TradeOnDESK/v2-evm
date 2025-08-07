@@ -4,7 +4,7 @@
 
 pragma solidity 0.8.18;
 
-import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
+import { Ownable } from "@openzeppelin-4.8.1/contracts/access/Ownable.sol";
 import { ABDKMath64x64 } from "@abdk/ABDKMath64x64.sol";
 import { IEcoPythCalldataBuilder3 } from "@hmx/oracles/interfaces/IEcoPythCalldataBuilder3.sol";
 import { ICIXPriceAdapter } from "@hmx/oracles/interfaces/ICIXPriceAdapter.sol";

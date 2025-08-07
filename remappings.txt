@@ -1,5 +1,6 @@
 forge-std/=lib/forge-std/src/
-@openzeppelin/=lib/openzeppelin-contracts/
+@openzeppelin-4.8.1/=lib/openzeppelin-contracts/
+@openzeppelin/=lib/openzeppelin-contracts-5.4.0/
 @openzeppelin-upgradeable/=lib/openzeppelin-contracts-upgradeable/
 pyth-sdk-solidity/=lib/pyth-sdk-solidity/
 @chainlink/=lib/chainlink/

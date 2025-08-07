@@ -5,7 +5,7 @@
 pragma solidity 0.8.18;
 
 import { IPriceAdapter } from "@hmx/oracles/interfaces/IPriceAdapter.sol";
-import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
+import { Ownable } from "@openzeppelin-4.8.1/contracts/access/Ownable.sol";
 
 contract OnChainPriceLens is Ownable {
   error OnChainPriceLens_BadPriceId();

@@ -2,7 +2,7 @@ import { ethers, tenderly, upgrades, network } from "hardhat";
 import { getConfig, writeConfigFile } from "../../utils/config";
 import { RebalanceHLPHandler__factory } from "../../../../typechain";
 import signers from "../../entities/signers";
-import { getImplementationAddress } from "@openzeppelin/upgrades-core";
+import { getImplementationAddress } from "@openzeppelin-4.8.1/upgrades-core";
 
 const config = getConfig();
 

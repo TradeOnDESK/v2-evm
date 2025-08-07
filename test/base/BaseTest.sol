@@ -14,7 +14,7 @@ import { StdAssertions } from "forge-std/StdAssertions.sol";
  */
 import { Deployer } from "@hmx-test/libs/Deployer.sol";
 
-import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import { ERC20 } from "@openzeppelin-4.8.1/contracts/token/ERC20/ERC20.sol";
 import { IERC20Upgradeable } from "@openzeppelin-upgradeable/contracts/token/ERC20/IERC20Upgradeable.sol";
 
 // Mocks
@@ -44,7 +44,7 @@ import { IOracleMiddleware } from "@hmx/oracles/interfaces/IOracleMiddleware.sol
 import { IPerpStorage } from "@hmx/storages/interfaces/IPerpStorage.sol";
 import { IConfigStorage } from "@hmx/storages/interfaces/IConfigStorage.sol";
 import { IVaultStorage } from "@hmx/storages/interfaces/IVaultStorage.sol";
-import { ProxyAdmin } from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
+import { ProxyAdmin } from "@openzeppelin-4.8.1/contracts/proxy/transparent/ProxyAdmin.sol";
 import { console } from "forge-std/console.sol";
 import { EcoPyth } from "@hmx/oracles/EcoPyth.sol";
 

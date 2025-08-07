@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+import "@openzeppelin-4.8.1/contracts/utils/structs/EnumerableSet.sol";
 import "./EnumerableValues.sol";
 import "./Role.sol";
 import "./Errors.sol";

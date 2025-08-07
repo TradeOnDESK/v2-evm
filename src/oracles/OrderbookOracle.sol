@@ -4,8 +4,8 @@
 
 pragma solidity 0.8.18;
 
-import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
-import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
+import { Ownable } from "@openzeppelin-4.8.1/contracts/access/Ownable.sol";
+import { SafeCast } from "@openzeppelin-4.8.1/contracts/utils/math/SafeCast.sol";
 import { TickMath } from "@aperture-finance/uni-v3-lib/TickMath.sol";
 
 contract OrderbookOracle is Ownable {

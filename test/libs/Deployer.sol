@@ -5,8 +5,8 @@
 pragma solidity 0.8.18;
 
 // OZ
-import { ProxyAdmin } from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
-import { TransparentUpgradeableProxy } from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
+import { ProxyAdmin } from "@openzeppelin-4.8.1/contracts/proxy/transparent/ProxyAdmin.sol";
+import { TransparentUpgradeableProxy } from "@openzeppelin-4.8.1/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 
 // Forge
 import { Vm } from "forge-std/Vm.sol";
