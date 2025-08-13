@@ -14,6 +14,7 @@ import { Vm } from "forge-std/Vm.sol";
 // Interfaces
 import { IHLP } from "@hmx/contracts/interfaces/IHLP.sol";
 import { ICalculator } from "@hmx/contracts/interfaces/ICalculator.sol";
+import { IDLP } from "@hmx/contracts/interfaces/IDLP.sol";
 
 import { IEcoPyth } from "@hmx/oracles/interfaces/IEcoPyth.sol";
 import { IEcoPythCalldataBuilder } from "@hmx/oracles/interfaces/IEcoPythCalldataBuilder.sol";
@@ -819,6 +820,13 @@ library Deployer {
     );
     address _proxy = _setupUpgradeable(_logicBytecode, _initializer, _proxyAdmin);
     return IGasService(payable(_proxy));
+  }
+
+  function deployDLP(address _proxyAdmin, address _asset) internal returns (IDLP) {
+    bytes memory _logicBytecode = abi.encodePacked(vm.getCode("./out/DLP.sol/DLP.json"));
+    bytes memory _initializer = abi.encodeWithSelector(bytes4(keccak256("initialize(address)")), _asset);
+    address _proxy = _setupUpgradeable(_logicBytecode, _initializer, _proxyAdmin);
+    return IDLP(payable(_proxy));
   }
 
   /**

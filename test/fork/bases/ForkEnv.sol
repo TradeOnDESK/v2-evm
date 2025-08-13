@@ -89,6 +89,7 @@ import { HMXLib } from "@hmx/libraries/HMXLib.sol";
 import { UncheckedEcoPythCalldataBuilder } from "@hmx/oracles/UncheckedEcoPythCalldataBuilder.sol";
 import { IOrderReader } from "@hmx/readers/interfaces/IOrderReader.sol";
 import { LimitTradeHelper } from "@hmx/helpers/LimitTradeHelper.sol";
+import { IDLP } from "@hmx/contracts/interfaces/IDLP.sol";
 
 abstract contract ForkEnv is Test {
   using stdJson for string;
@@ -202,6 +203,7 @@ abstract contract ForkEnv is Test {
   IERC20 internal sglp = IERC20(getAddress(".tokens.sglp"));
   IERC20 internal wstEth = IERC20(getAddress(".tokens.wstEth"));
   IERC20 internal hlp = IERC20(getAddress(".tokens.hlp"));
+  IDLP internal dlp = IDLP(getAddress(".tokens.dlp"));
 
   AdaptiveFeeCalculator adaptiveFeeCalculator = AdaptiveFeeCalculator(getAddress(".adaptiveFeeCalculator"));
   OrderbookOracle orderbookOracle = OrderbookOracle(getAddress(".oracles.orderbook"));

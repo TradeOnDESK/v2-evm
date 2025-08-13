@@ -83,6 +83,7 @@ contract LiquidityHandler is OwnableUpgradeable, ReentrancyGuardUpgradeable, ILi
     bool isNativeOut
   );
   event LogSetHlpStaking(address oldHlpStaking, address newHlpStaking);
+  event LogSetDlp(address oldDlp, address newDlp);
 
   /**
    * States
@@ -262,11 +263,15 @@ contract LiquidityHandler is OwnableUpgradeable, ReentrancyGuardUpgradeable, ILi
     _transferInETH();
 
     // transfers ERC-20 token from user's account to this contract
-    IERC20Upgradeable(ConfigStorage(LiquidityService(liquidityService).configStorage()).hlp()).safeTransferFrom(
-      msg.sender,
-      address(this),
-      _amountIn
-    );
+    if (dlp != address(0)) {
+      IERC20Upgradeable(dlp).safeTransferFrom(msg.sender, address(this), _amountIn);
+    } else {
+      IERC20Upgradeable(ConfigStorage(LiquidityService(liquidityService).configStorage()).hlp()).safeTransferFrom(
+        msg.sender,
+        address(this),
+        _amountIn
+      );
+    }
 
     _orderId = liquidityOrders.length;
 
@@ -418,10 +423,14 @@ contract LiquidityHandler is OwnableUpgradeable, ReentrancyGuardUpgradeable, ILi
         // Auto stake into HLPStaking
         ISurgeStaking(hlpStaking).deposit(_order.account, _amountOut);
       } else if (dlp != address(0)) {
-        IDLP(dlp).deposit(_amountOut, _order.account);
+        _amountOut = IDLP(dlp).deposit(_amountOut, _order.account);
       }
       return _amountOut;
     } else {
+      if (dlp != address(0)) {
+        _amountOut = IDLP(dlp).redeem(_order.amount, address(this), address(this));
+      }
+
       _amountOut = LiquidityService(liquidityService).removeLiquidity(
         _order.account,
         _order.token,
