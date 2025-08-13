@@ -21,6 +21,7 @@ contract HLP is ReentrancyGuardUpgradeable, OwnableUpgradeable, ERC20Upgradeable
   event SetRebaser(address oldRebaser, address newRebaser);
 
   error HLP_InvalidRebaser();
+  error HLP_InvalidAmount();
 
   /**
    * Modifiers
@@ -70,7 +71,11 @@ contract HLP is ReentrancyGuardUpgradeable, OwnableUpgradeable, ERC20Upgradeable
 
   function approve(address spender, uint256 rebasedAmount) public virtual override returns (bool) {
     address owner = _msgSender();
-    _approve(owner, spender, getOriginalAmount(rebasedAmount));
+    if (rebasedAmount == type(uint256).max) {
+      _approve(owner, spender, type(uint256).max);
+    } else {
+      _approve(owner, spender, getOriginalAmount(rebasedAmount));
+    }
     return true;
   }
 
@@ -92,8 +97,9 @@ contract HLP is ReentrancyGuardUpgradeable, OwnableUpgradeable, ERC20Upgradeable
 
   function transferFrom(address from, address to, uint256 rebasedAmount) public virtual override returns (bool) {
     address spender = _msgSender();
-    _spendAllowance(from, spender, getOriginalAmount(rebasedAmount));
-    _transfer(from, to, getOriginalAmount(rebasedAmount));
+    uint256 originalAmount = getOriginalAmount(rebasedAmount);
+    _spendAllowance(from, spender, originalAmount);
+    _transfer(from, to, originalAmount);
     return true;
   }
 
@@ -123,9 +129,8 @@ contract HLP is ReentrancyGuardUpgradeable, OwnableUpgradeable, ERC20Upgradeable
 
   function setRebaser(address _rebaser) external onlyOwner {
     if (_rebaser == address(0)) revert HLP_InvalidRebaser();
-    rebaser = _rebaser;
-
     emit SetRebaser(rebaser, _rebaser);
+    rebaser = _rebaser;
   }
 
   function getRebasedAmount(uint256 amount) public view returns (uint256) {
@@ -155,7 +160,7 @@ contract HLP is ReentrancyGuardUpgradeable, OwnableUpgradeable, ERC20Upgradeable
       // Check for potential overflow: if amount * 1e18 would overflow
       if (amount > type(uint256).max / 1e18) {
         // If multiplication would overflow, return maxUint256 as a safe fallback
-        return type(uint256).max;
+        revert HLP_InvalidAmount();
       }
       return Math.mulDiv(amount, 1e18, rebaseIndex);
     }
