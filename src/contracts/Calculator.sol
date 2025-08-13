@@ -91,7 +91,6 @@ contract Calculator is OwnableUpgradeable, ICalculator {
       borrowingFeeDebt +
       lossDebt +
       _vaultStorage.hlpLiquidityDebtUSDE30();
-
     if (pnlE30 < 0) {
       uint256 _pnl = uint256(-pnlE30);
       if (aum < _pnl) return 0;
@@ -185,7 +184,8 @@ contract Calculator is OwnableUpgradeable, ICalculator {
     ConfigStorage.AssetConfig memory _assetConfig = _configStorage.getAssetConfig(_underlyingAssetId);
 
     uint256 _totalAssets = _vs.hlpLiquidity(_assetConfig.tokenAddress) +
-      _vs.hlpLiquidityOnHold(_assetConfig.tokenAddress);
+      _vs.hlpLiquidityOnHold(_assetConfig.tokenAddress) -
+      _vs.getPendingRewardDebt(_assetConfig.tokenAddress);
     if (_totalAssets == 0) return 0;
 
     (uint256 _priceE30, ) = OracleMiddleware(oracle).unsafeGetLatestPrice(_underlyingAssetId, _isMaxPrice);

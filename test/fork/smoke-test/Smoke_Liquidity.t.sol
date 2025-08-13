@@ -12,33 +12,46 @@ import { ILiquidityHandler } from "@hmx/handlers/interfaces/ILiquidityHandler.so
 import { LiquidityHandler } from "@hmx/handlers/LiquidityHandler.sol";
 import { IEcoPythCalldataBuilder } from "@hmx/oracles/interfaces/IEcoPythCalldataBuilder.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { Deployer } from "@hmx-test/libs/Deployer.sol";
 
 contract Smoke_Liquidity is ForkEnv {
+  function setUp() internal {
+    vm.startPrank(ForkEnv.proxyAdmin.owner());
+    ForkEnv.dlp = Deployer.deployDLP(address(ForkEnv.proxyAdmin), address(ForkEnv.hlp));
+    ForkEnv.liquidityHandler.setDlp(address(ForkEnv.dlp));
+    vm.stopPrank();
+  }
+
   function addLiquidity() external {
+    setUp();
     _createAndExecuteAddLiquidityOrder();
   }
 
   function removeLiquidity() external {
+    setUp();
     _createAndExecuteRemoveLiquidityOrder();
   }
 
   function _createAndExecuteAddLiquidityOrder() internal {
-    deal(address(ForkEnv.usdc_e), ALICE, 10 * 1e6);
+    deal(address(ForkEnv.usdc), ALICE, 10 * 1e6);
     deal(ALICE, 10 ether);
     deal(address(ForkEnv.liquidityHandler), 100 ether);
 
+    uint256 dlpBalanceBefore = ForkEnv.dlp.balanceOf(ALICE);
+
     vm.startPrank(ALICE);
 
-    ForkEnv.usdc_e.approve(address(ForkEnv.liquidityHandler), type(uint256).max);
+    ForkEnv.usdc.approve(address(ForkEnv.liquidityHandler), type(uint256).max);
 
     uint256 minExecutionFee = ForkEnv.liquidityHandler.minExecutionOrderFee();
 
     uint256 _latestOrderIndex = ForkEnv.liquidityHandler.createAddLiquidityOrder{ value: minExecutionFee }(
-      address(ForkEnv.usdc_e),
+      address(ForkEnv.usdc),
       10 * 1e6,
       0 ether,
       minExecutionFee,
-      false
+      false,
+      true
     );
     vm.stopPrank();
 
@@ -69,13 +82,10 @@ contract Smoke_Liquidity is ForkEnv {
       keccak256("someEncodedVaas")
     );
 
-    assertApproxEqRel(
-      ForkEnv.hlpStaking.calculateShare(address(this), address(ALICE)),
-      _estimatedHlpReceived,
-      0.01 ether,
-      "User HLP Balance in Staking"
-    );
-    assertEq(ForkEnv.usdc_e.balanceOf(ALICE), 0, "User USDC.e Balance");
+    uint256 dlpBalanceAfter = ForkEnv.dlp.balanceOf(ALICE);
+
+    assertGt(dlpBalanceAfter, dlpBalanceBefore, "User DLP Balance");
+    assertEq(ForkEnv.usdc.balanceOf(ALICE), 0, "User USDC.e Balance");
   }
 
   function _createAndExecuteRemoveLiquidityOrder() internal {
@@ -84,13 +94,15 @@ contract Smoke_Liquidity is ForkEnv {
     deal(address(ForkEnv.liquidityHandler), 100 ether);
 
     vm.startPrank(ALICE);
+    ForkEnv.hlp.approve(address(ForkEnv.dlp), type(uint256).max);
+    ForkEnv.dlp.deposit(10 * 1e18, ALICE);
 
-    ForkEnv.hlp.approve(address(ForkEnv.liquidityHandler), type(uint256).max);
+    ForkEnv.dlp.approve(address(ForkEnv.liquidityHandler), type(uint256).max);
 
     uint256 minExecutionFee = ForkEnv.liquidityHandler.minExecutionOrderFee();
 
     uint256 _latestOrderIndex = ForkEnv.liquidityHandler.createRemoveLiquidityOrder{ value: minExecutionFee }(
-      address(ForkEnv.usdc_e),
+      address(ForkEnv.usdc),
       10 * 1e18,
       0 ether,
       minExecutionFee,
@@ -126,7 +138,7 @@ contract Smoke_Liquidity is ForkEnv {
       keccak256("someEncodedVaas")
     );
 
-    assertApproxEqRel(ForkEnv.usdc_e.balanceOf(ALICE), _estimatedUsdcReceivedE6, 0.01 ether, "User USDC.e Balance");
+    assertApproxEqRel(ForkEnv.usdc.balanceOf(ALICE), _estimatedUsdcReceivedE6, 0.01 ether, "User USDC.e Balance");
     assertEq(ForkEnv.hlp.balanceOf(ALICE), 0, "User HLP Balance");
   }
 }

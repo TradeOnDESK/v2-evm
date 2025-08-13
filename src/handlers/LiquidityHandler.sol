@@ -18,6 +18,7 @@ import { PerpStorage } from "@hmx/storages/PerpStorage.sol";
 import { Calculator } from "@hmx/contracts/Calculator.sol";
 import { OracleMiddleware } from "@hmx/oracles/OracleMiddleware.sol";
 import { HLP } from "@hmx/contracts/HLP.sol";
+import { IDLP } from "@hmx/contracts/interfaces/IDLP.sol";
 
 // interfaces
 import { ILiquidityHandler } from "@hmx/handlers/interfaces/ILiquidityHandler.sol";
@@ -82,6 +83,7 @@ contract LiquidityHandler is OwnableUpgradeable, ReentrancyGuardUpgradeable, ILi
     bool isNativeOut
   );
   event LogSetHlpStaking(address oldHlpStaking, address newHlpStaking);
+  event LogSetDlp(address oldDlp, address newDlp);
 
   /**
    * States
@@ -98,6 +100,7 @@ contract LiquidityHandler is OwnableUpgradeable, ReentrancyGuardUpgradeable, ILi
 
   ISurgeStaking public hlpStaking;
   mapping(address user => mapping(uint256 orderId => bool isSurge)) isSurge; // isSurge is repurposed to isNotAutoStake to indicate if user want to auto-stake HLP or not
+  address public dlp;
 
   /// @notice Initializes the LiquidityHandler contract with the provided configuration parameters.
   /// @param _liquidityService Address of the LiquidityService contract.
@@ -260,11 +263,15 @@ contract LiquidityHandler is OwnableUpgradeable, ReentrancyGuardUpgradeable, ILi
     _transferInETH();
 
     // transfers ERC-20 token from user's account to this contract
-    IERC20Upgradeable(ConfigStorage(LiquidityService(liquidityService).configStorage()).hlp()).safeTransferFrom(
-      msg.sender,
-      address(this),
-      _amountIn
-    );
+    if (dlp != address(0)) {
+      IERC20Upgradeable(dlp).safeTransferFrom(msg.sender, address(this), _amountIn);
+    } else {
+      IERC20Upgradeable(ConfigStorage(LiquidityService(liquidityService).configStorage()).hlp()).safeTransferFrom(
+        msg.sender,
+        address(this),
+        _amountIn
+      );
+    }
 
     _orderId = liquidityOrders.length;
 
@@ -408,15 +415,22 @@ contract LiquidityHandler is OwnableUpgradeable, ReentrancyGuardUpgradeable, ILi
         _order.token,
         _order.amount,
         _order.minOut,
-        (isNotAutoStake || !isHlpStakingDeployed) ? _order.account : address(this)
+        address(this)
       );
+
       if (isHlpStakingDeployed && !isNotAutoStake) {
         // If HLPStaking is live and user want to auto-stake
         // Auto stake into HLPStaking
         ISurgeStaking(hlpStaking).deposit(_order.account, _amountOut);
+      } else if (dlp != address(0)) {
+        _amountOut = IDLP(dlp).deposit(_amountOut, _order.account);
       }
       return _amountOut;
     } else {
+      if (dlp != address(0)) {
+        _amountOut = IDLP(dlp).redeem(_order.amount, address(this), address(this));
+      }
+
       _amountOut = LiquidityService(liquidityService).removeLiquidity(
         _order.account,
         _order.token,
@@ -659,6 +673,18 @@ contract LiquidityHandler is OwnableUpgradeable, ReentrancyGuardUpgradeable, ILi
     // Max approve
     IERC20Upgradeable(ConfigStorage(LiquidityService(liquidityService).configStorage()).hlp()).safeApprove(
       address(hlpStaking),
+      type(uint256).max
+    );
+  }
+
+  function setDlp(address _dlp) external onlyOwner {
+    if (_dlp == address(0)) revert ILiquidityHandler_InvalidAddress();
+    emit LogSetDlp(dlp, _dlp);
+    dlp = _dlp;
+
+    // Max approve
+    IERC20Upgradeable(ConfigStorage(LiquidityService(liquidityService).configStorage()).hlp()).safeApprove(
+      dlp,
       type(uint256).max
     );
   }

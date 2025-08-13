@@ -47,6 +47,7 @@ import { Smoke_Trade } from "@hmx-test/fork/smoke-test/Smoke_Trade.t.sol";
 import { Smoke_TriggerOrder } from "@hmx-test/fork/smoke-test/Smoke_TriggerOrder.t.sol";
 import { RebalanceHLPService_Test } from "@hmx-test/fork/rebalance-hlp/RebalanceHLPService.t.sol";
 import { Smoke_DistributeARBRewardsFromSTIP } from "@hmx-test/fork/smoke-test/Smoke_DistributeARBRewardsFromSTIP.t.sol";
+import { IDLP } from "@hmx/contracts/interfaces/IDLP.sol";
 
 contract Smoke_Base is ForkEnv {
   uint256 internal constant BPS = 10_000;
@@ -72,7 +73,7 @@ contract Smoke_Base is ForkEnv {
     Deployer.upgrade("LiquidationService", address(ForkEnv.proxyAdmin), address(ForkEnv.liquidationService));
     Deployer.upgrade("VaultStorage", address(ForkEnv.proxyAdmin), address(ForkEnv.vaultStorage));
     Deployer.upgrade("CrossMarginHandler", address(ForkEnv.proxyAdmin), address(ForkEnv.crossMarginHandler));
-
+    Deployer.upgrade("LiquidityHandler", address(ForkEnv.proxyAdmin), address(ForkEnv.liquidityHandler));
     vm.stopPrank();
   }
 

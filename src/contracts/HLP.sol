@@ -128,7 +128,6 @@ contract HLP is ReentrancyGuardUpgradeable, OwnableUpgradeable, ERC20Upgradeable
     emit SetRebaser(rebaser, _rebaser);
   }
 
-  // TODO: improve preceision loss
   function getRebasedAmount(uint256 amount) public view returns (uint256) {
     if (rebaser == address(0)) {
       return amount;

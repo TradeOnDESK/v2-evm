@@ -15,6 +15,8 @@ interface IVaultStorage {
   error IVaultStorage_BadLen();
   error IVaultStorage_InvalidAddress();
   error IVaultStorage_InvalidAccounting();
+  error IVaultStorage_FeedAmountZero();
+  error IVaultStorage_DurationZero();
 
   /**
    * Functions
@@ -115,4 +117,16 @@ interface IVaultStorage {
   function globalBorrowingFeeDebt() external view returns (uint256);
 
   function globalLossDebt() external view returns (uint256);
+
+  function getPendingRewardDebt(address _token) external view returns (uint256);
+
+  function feed(address _token, uint256 _feedAmount, uint256 _duration) external;
+
+  function feedWithExpiredAt(address _token, uint256 _feedAmount, uint256 _expiredAt) external;
+
+  function rewardDebt(address _token) external view returns (uint256);
+
+  function rewardDebtStartAt(address _token) external view returns (uint256);
+
+  function rewardDebtExpiredAt(address _token) external view returns (uint256);
 }
