@@ -424,6 +424,12 @@ contract LiquidityHandler is OwnableUpgradeable, ReentrancyGuardUpgradeable, ILi
         ISurgeStaking(hlpStaking).deposit(_order.account, _amountOut);
       } else if (dlp != address(0)) {
         _amountOut = IDLP(dlp).deposit(_amountOut, _order.account);
+      } else {
+        // transfer HLP to user
+        IERC20Upgradeable(ConfigStorage(LiquidityService(liquidityService).configStorage()).hlp()).safeTransfer(
+          _order.account,
+          _amountOut
+        );
       }
       return _amountOut;
     } else {
