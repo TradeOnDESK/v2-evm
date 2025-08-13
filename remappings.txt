@@ -1,3 +1,6 @@
+lib/openzeppelin-contracts-upgradeable-5.4.0/:@openzeppelin/=lib/openzeppelin-contracts-5.4.0/
+@openzeppelin-contracts-5.4.0/=lib/openzeppelin-contracts-5.4.0/
+@openzeppelin-contracts-upgradeable-5.4.0/=lib/openzeppelin-contracts-upgradeable-5.4.0/
 forge-std/=lib/forge-std/src/
 @openzeppelin/=lib/openzeppelin-contracts/
 @openzeppelin-upgradeable/=lib/openzeppelin-contracts-upgradeable/
