@@ -10,5 +10,6 @@ import { ERC4626Upgradeable } from "@openzeppelin-contracts-upgradeable-5.4.0/co
 contract DLP is ERC4626Upgradeable {
   function initialize(address asset) public initializer {
     __ERC4626_init(IERC20(asset));
+    __ERC20_init("DLP", "DLP");
   }
 }
