@@ -434,15 +434,21 @@ contract LiquidityHandler is OwnableUpgradeable, ReentrancyGuardUpgradeable, ILi
       return _amountOut;
     } else {
       if (dlp != address(0)) {
-        _amountOut = IDLP(dlp).redeem(_order.amount, address(this), address(this));
+        uint256 hlpAmount = IDLP(dlp).redeem(_order.amount, address(this), address(this));
+        _amountOut = LiquidityService(liquidityService).removeLiquidity(
+          _order.account,
+          _order.token,
+          hlpAmount,
+          _order.minOut
+        );
+      } else {
+        _amountOut = LiquidityService(liquidityService).removeLiquidity(
+          _order.account,
+          _order.token,
+          _order.amount,
+          _order.minOut
+        );
       }
-
-      _amountOut = LiquidityService(liquidityService).removeLiquidity(
-        _order.account,
-        _order.token,
-        _order.amount,
-        _order.minOut
-      );
 
       if (_order.isNativeOut) {
         _transferOutETH(_amountOut, payable(_order.account));
@@ -512,9 +518,15 @@ contract LiquidityHandler is OwnableUpgradeable, ReentrancyGuardUpgradeable, ILi
     }
     // Remove Liquidity order
     else {
-      address hlp = ConfigStorage(LiquidityService(liquidityService).configStorage()).hlp();
-      IERC20Upgradeable(hlp).safeTransfer(_account, _amount);
-      emit LogRefund(_account, _order.orderId, hlp, _amount, false);
+      if (dlp != address(0)) {
+        uint256 hlpAmountToBeWrapped = IDLP(dlp).convertToAssets(_amount);
+        uint256 dlpAmount = IDLP(dlp).deposit(hlpAmountToBeWrapped, _account);
+        emit LogRefund(_account, _order.orderId, dlp, dlpAmount, false);
+      } else {
+        address hlp = ConfigStorage(LiquidityService(liquidityService).configStorage()).hlp();
+        IERC20Upgradeable(hlp).safeTransfer(_account, _amount);
+        emit LogRefund(_account, _order.orderId, hlp, _amount, false);
+      }
     }
   }
 
