@@ -159,7 +159,7 @@ contract MigrateWUSDM is ForkEnv, Cheats {
     // Try to call with a different address (should revert)
     vm.startPrank(ALICE);
 
-    vm.expectRevert();
+    vm.expectRevert(abi.encodeWithSelector(ExternalRebalancer.ExternalRebalancer_NotWhitelisted.selector));
     externalRebalancer.startRebalance(address(wusdm), initialWUSDMHLPLiquidity, ALICE);
 
     vm.stopPrank();
@@ -170,9 +170,9 @@ contract MigrateWUSDM is ForkEnv, Cheats {
     uint256 initialWUSDMHLPLiquidity = vaultStorage.hlpLiquidity(address(wusdm));
     uint256 excessiveAmount = initialWUSDMHLPLiquidity + 1;
 
-    vm.startPrank(address(externalRebalancer));
+    vm.startPrank(address(this));
 
-    vm.expectRevert();
+    vm.expectRevert(abi.encodeWithSelector(ExternalRebalancer.ExternalRebalancer_InsufficientLiquidity.selector));
     externalRebalancer.startRebalance(address(wusdm), excessiveAmount, address(externalRebalancer));
 
     vm.stopPrank();
@@ -220,13 +220,16 @@ contract MigrateWUSDM is ForkEnv, Cheats {
     externalRebalancer.startRebalance(address(wusdm), initialWUSDMHLPLiquidity, address(externalRebalancer));
 
     // Try to complete rebalance with insufficient replacement amount
-    uint256 insufficientReplacementAmount = initialWUSDMHLPLiquidity / 2; // Only half the amount
+    uint256 insufficientReplacementAmount = 1;
 
     // Mint insufficient USDC to ExternalRebalancer
     deal(address(usdc), address(this), insufficientReplacementAmount);
 
+    // approve usdc to external rebalancer
+    usdc.approve(address(externalRebalancer), insufficientReplacementAmount);
+
     // This should revert due to AUM drop exceeding the maximum allowed
-    vm.expectRevert();
+    vm.expectRevert(abi.encodeWithSelector(ExternalRebalancer.ExternalRebalancer_AUMDropExceeded.selector));
     externalRebalancer.completeRebalance(address(wusdm), address(usdc), insufficientReplacementAmount);
   }
 

@@ -148,12 +148,6 @@ contract ExternalRebalancer is OwnableUpgradeable, ReentrancyGuardUpgradeable {
       revert ExternalRebalancer_NoReplacementToken();
     }
 
-    // Add validation for replacement amount
-    if (_replacementAmount < (onHoldAmount * 90) / 100) {
-      // Allow 10% tolerance
-      revert ExternalRebalancer_InsufficientReplacementAmount();
-    }
-
     // Get initial AUM for comparison
     uint256 initialAUM = calculator.getAUME30(false);
 
