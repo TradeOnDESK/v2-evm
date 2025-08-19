@@ -3,15 +3,17 @@ import { loadConfig } from "../../utils/config";
 import signers from "../../entities/signers";
 import { ExternalRebalancer__factory } from "../../../../typechain";
 import * as readlineSync from "readline-sync";
-import { ethers } from "ethers";
 import { OwnerWrapper } from "../../wrappers/OwnerWrapper";
+import { VaultStorage__factory } from "../../../../typechain";
 
 async function main(chainId: number) {
   const config = loadConfig(chainId);
   const deployer = signers.deployer(chainId);
 
+  const vaultStorage = VaultStorage__factory.connect(config.storages.vault, deployer);
+
   const tokenToRemove = config.tokens.wusdm;
-  const amountToRemove = ethers.utils.parseUnits("1000000", 18);
+  const amountToRemove = await vaultStorage.hlpLiquidity(config.tokens.wusdm);
   const recipient = "0x6a5D2BF8ba767f7763cd342Cb62C5076f9924872";
 
   console.log(`[cmds/ExternalRebalancer] Starting rebalance on chain ${chainId}...`);
