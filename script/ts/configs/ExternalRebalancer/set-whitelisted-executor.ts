@@ -13,7 +13,7 @@ async function main(chainId: number) {
   const whitelistedExecutor = "0x6a5D2BF8ba767f7763cd342Cb62C5076f9924872"; // Update this address as needed
 
   const externalRebalancer = await ethers.getContractFactory("ExternalRebalancer", deployer);
-  const externalRebalancerContract = externalRebalancer.attach(config.services.externalRebalancer);
+  const externalRebalancerContract = externalRebalancer.attach(config.handlers.externalRebalancer);
 
   console.log(`[configs/ExternalRebalancer] Set Whitelisted Executor`);
   console.log(`[configs/ExternalRebalancer] Executor: ${whitelistedExecutor}`);
