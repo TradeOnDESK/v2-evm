@@ -25,6 +25,10 @@ abstract contract ForkEnvWithActions is ForkEnv {
   }
 
   function addLiquidity(address _liquidityProvider, IERC20 _tokenIn, uint256 _amountIn, bool executeNow) internal {
+    vm.startPrank(ForkEnv.multiSig);
+    liquidityHandler.setOrderExecutor(_liquidityProvider, true);
+    vm.stopPrank();
+
     vm.startPrank(_liquidityProvider);
     uint256 _executionFee = liquidityHandler.minExecutionOrderFee();
     _tokenIn.approve(address(liquidityHandler), _amountIn);
@@ -44,6 +48,10 @@ abstract contract ForkEnvWithActions is ForkEnv {
   }
 
   function removeLiquidity(address _liquidityProvider, IERC20 _tokenOut, uint256 _amountIn, bool executeNow) internal {
+    vm.startPrank(ForkEnv.multiSig);
+    liquidityHandler.setOrderExecutor(_liquidityProvider, true);
+    vm.stopPrank();
+
     vm.startPrank(_liquidityProvider);
     uint256 _executionFee = liquidityHandler.minExecutionOrderFee();
     hlp.approve(address(liquidityHandler), _amountIn);
@@ -71,6 +79,10 @@ abstract contract ForkEnvWithActions is ForkEnv {
       uint256 minPublishedTime,
       bytes32 encodedVaas
     ) = MockEcoPyth(address(ForkEnv.ecoPyth2)).getLastestPriceUpdateData();
+    vm.startPrank(ForkEnv.multiSig);
+    liquidityHandler.setOrderExecutor(liquidityOrderExecutor, true);
+    vm.stopPrank();
+
     vm.startPrank(liquidityOrderExecutor);
     liquidityHandler.executeOrder(
       _endIndex,
@@ -112,6 +124,10 @@ abstract contract ForkEnvWithActions is ForkEnv {
     );
     vm.stopPrank();
     // Keeper comes and execute the order
+    vm.startPrank(ForkEnv.multiSig);
+    crossMarginHandler.setOrderExecutor(crossMarginOrderExecutor, true);
+    vm.stopPrank();
+
     vm.startPrank(crossMarginOrderExecutor);
     (
       bytes32[] memory priceData,
@@ -168,6 +184,10 @@ abstract contract ForkEnvWithActions is ForkEnv {
       bytes32 encodedVaas
     ) = MockEcoPyth(address(ForkEnv.ecoPyth2)).getLastestPriceUpdateData();
 
+    vm.startPrank(ForkEnv.multiSig);
+    limitTradeHandler.setOrderExecutor(limitOrderExecutor, true);
+    vm.stopPrank();
+
     vm.startPrank(limitOrderExecutor);
     limitTradeHandler.executeOrders(
       accounts,
@@ -219,6 +239,10 @@ abstract contract ForkEnvWithActions is ForkEnv {
       uint256 minPublishedTime,
       bytes32 encodedVaas
     ) = MockEcoPyth(address(ForkEnv.ecoPyth2)).getLastestPriceUpdateData();
+
+    vm.startPrank(ForkEnv.multiSig);
+    limitTradeHandler.setOrderExecutor(limitOrderExecutor, true);
+    vm.stopPrank();
 
     vm.startPrank(limitOrderExecutor);
     limitTradeHandler.executeOrders(
