@@ -93,7 +93,7 @@ contract MigrateWUSDM is ForkEnv, Cheats {
     }
 
     // Step 4: ExternalRebalancer injects USDC to replace WUSDM
-    uint256 usdcAmountToInject = initialWUSDMHLPLiquidity;
+    uint256 usdcAmountToInject = (initialWUSDMHLPLiquidity * 108) / 100 / 1e12;
 
     // Mint USDC to the ExternalRebalancer using deal
     deal(address(usdc), address(this), usdcAmountToInject);
@@ -245,7 +245,7 @@ contract MigrateWUSDM is ForkEnv, Cheats {
     externalRebalancer.startRebalance(address(wusdm), initialWUSDMHLPLiquidity, address(externalRebalancer));
 
     // Complete rebalance with sufficient replacement amount
-    uint256 replacementAmount = initialWUSDMHLPLiquidity;
+    uint256 replacementAmount = (initialWUSDMHLPLiquidity * 108) / 100 / 1e12;
     deal(address(usdc), address(this), replacementAmount);
 
     // This should succeed
@@ -270,5 +270,33 @@ contract MigrateWUSDM is ForkEnv, Cheats {
     }
 
     console.log("Successful rebalance with AUM validation completed!");
+  }
+
+  function testMigrateWUSDM_AUMIncreaseExceeded() external {
+    // Test that rebalance fails when AUM increase exceeds maximum allowed
+    uint256 initialWUSDMHLPLiquidity = vaultStorage.hlpLiquidity(address(wusdm));
+    uint256 initialAUM = calculator.getAUME30(false);
+
+    // Set a very low max AUM change percentage (0.1%)
+    externalRebalancer.setMaxAUMDropPercentage(10); // 10 basis points = 0.1%
+
+    // Start rebalance
+    externalRebalancer.startRebalance(address(wusdm), initialWUSDMHLPLiquidity, address(externalRebalancer));
+
+    // Try to complete rebalance with excessive replacement amount that would cause AUM to increase too much
+    // We'll use a much larger amount than the removed WUSDM to simulate a scenario where AUM increases significantly
+    uint256 excessiveReplacementAmount = initialWUSDMHLPLiquidity * 10; // 10x the removed amount
+
+    // Mint excessive USDC to ExternalRebalancer
+    deal(address(usdc), address(this), excessiveReplacementAmount);
+
+    // Approve USDC to external rebalancer
+    usdc.approve(address(externalRebalancer), excessiveReplacementAmount);
+
+    // This should revert due to AUM increase exceeding the maximum allowed
+    vm.expectRevert(abi.encodeWithSelector(ExternalRebalancer.ExternalRebalancer_AUMIncreaseExceeded.selector));
+    externalRebalancer.completeRebalance(address(wusdm), address(usdc), excessiveReplacementAmount);
+
+    console.log("AUM increase exceeded test completed successfully!");
   }
 }

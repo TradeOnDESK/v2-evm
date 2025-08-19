@@ -68,6 +68,7 @@ contract ExternalRebalancer is OwnableUpgradeable, ReentrancyGuardUpgradeable {
   error ExternalRebalancer_InsufficientReplacementAmount();
   error ExternalRebalancer_InvalidPercentage();
   error ExternalRebalancer_AUMChanged();
+  error ExternalRebalancer_AUMIncreaseExceeded();
 
   function initialize(address _vaultStorage, address _calculator, uint16 _maxAUMDropPercentage) external initializer {
     OwnableUpgradeable.__Ownable_init();
@@ -164,12 +165,17 @@ contract ExternalRebalancer is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     uint256 finalAUM = calculator.getAUME30(false);
     uint256 aumDropPercentage = 0;
 
-    if (finalAUM <= initialAUM) {
+    if (finalAUM < initialAUM) {
       aumDropPercentage = ((initialAUM - finalAUM) * 10000) / initialAUM; // in basis points
 
       // Check if AUM drop exceeds maximum allowed
       if (aumDropPercentage > maxAUMDropPercentage) {
         revert ExternalRebalancer_AUMDropExceeded();
+      }
+    } else {
+      aumDropPercentage = ((finalAUM - initialAUM) * 10000) / initialAUM; // in basis points
+      if (aumDropPercentage > maxAUMDropPercentage) {
+        revert ExternalRebalancer_AUMIncreaseExceeded();
       }
     }
 
