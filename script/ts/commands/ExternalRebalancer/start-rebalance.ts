@@ -29,7 +29,7 @@ async function main(chainId: number) {
       return;
   }
 
-  const externalRebalancer = ExternalRebalancer__factory.connect(config.services.externalRebalancer, deployer);
+  const externalRebalancer = ExternalRebalancer__factory.connect(config.handlers.externalRebalancer, deployer);
   const ownerWrapper = new OwnerWrapper(chainId, deployer);
 
   // Check if the caller is whitelisted
