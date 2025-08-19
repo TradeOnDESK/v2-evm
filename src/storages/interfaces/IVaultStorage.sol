@@ -58,6 +58,8 @@ interface IVaultStorage {
 
   function hlpLiquidity(address _token) external view returns (uint256);
 
+  function hlpLiquidityOnHold(address _token) external view returns (uint256);
+
   function pullToken(address _token) external returns (uint256);
 
   function clearOnHold(address _token, uint256 _amount) external;
@@ -91,6 +93,8 @@ interface IVaultStorage {
   function payHlp(address _trader, address _token, uint256 _amount) external;
 
   function setServiceExecutors(address _executorAddress, bool _isServiceExecutor) external;
+
+  function serviceExecutors(address _executor) external view returns (bool);
 
   function borrowFundingFeeFromHlpToTrader(
     address _trader,

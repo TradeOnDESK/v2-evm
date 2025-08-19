@@ -73,6 +73,7 @@ import { IERC20ApproveStrategy } from "@hmx/strategies/interfaces/IERC20ApproveS
 import { IIntentHandler } from "@hmx/handlers/interfaces/IIntentHandler.sol";
 import { ITradeOrderHelper } from "@hmx/helpers/interfaces/ITradeOrderHelper.sol";
 import { IGasService } from "@hmx/services/interfaces/IGasService.sol";
+import { ExternalRebalancer } from "@hmx/contracts/ExternalRebalancer.sol";
 
 library Deployer {
   Vm internal constant vm = Vm(0x7109709ECfa91a80626fF3989D68f67F5b1DD12D);
@@ -819,6 +820,23 @@ library Deployer {
     );
     address _proxy = _setupUpgradeable(_logicBytecode, _initializer, _proxyAdmin);
     return IGasService(payable(_proxy));
+  }
+
+  function deployExternalRebalancer(
+    address _proxyAdmin,
+    address _vaultStorage,
+    address _calculator,
+    uint16 _maxAUMDropPercentage
+  ) internal returns (ExternalRebalancer) {
+    bytes memory _logicBytecode = abi.encodePacked(vm.getCode("./out/ExternalRebalancer.sol/ExternalRebalancer.json"));
+    bytes memory _initializer = abi.encodeWithSelector(
+      bytes4(keccak256("initialize(address,address,uint16)")),
+      _vaultStorage,
+      _calculator,
+      _maxAUMDropPercentage
+    );
+    address _proxy = _setupUpgradeable(_logicBytecode, _initializer, _proxyAdmin);
+    return ExternalRebalancer(payable(_proxy));
   }
 
   /**

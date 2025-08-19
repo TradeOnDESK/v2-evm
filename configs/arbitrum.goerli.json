@@ -16,7 +16,8 @@
     "rebalanceHLP": "",
     "ext01": "0xd3f55a78558A6C0C8945B4c5E6d7c64f50b57481",
     "rebalanceHLPv2": "",
-    "intent": ""
+    "intent": "",
+    "externalRebalancer": "0x0000000000000000000000000000000000000000"
   },
   "helpers": {
     "trade": "0x845cbf46aa4c4d1f0090c949c46294103aef4519",
