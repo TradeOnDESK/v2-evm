@@ -25,7 +25,7 @@ async function main() {
   console.log(`[deploy/ExternalRebalancer] ExternalRebalancer deployed at: ${contract.address}`);
 
   // Add the ExternalRebalancer to the config
-  (config as any).externalRebalancer = contract.address;
+  config.handlers.externalRebalancer = contract.address;
   writeConfigFile(config);
 
   console.log(`[deploy/ExternalRebalancer] Configuration updated`);
