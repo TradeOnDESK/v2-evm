@@ -67,6 +67,7 @@ contract ExternalRebalancer is OwnableUpgradeable, ReentrancyGuardUpgradeable {
   error ExternalRebalancer_NoReplacementToken();
   error ExternalRebalancer_InsufficientReplacementAmount();
   error ExternalRebalancer_InvalidPercentage();
+  error ExternalRebalancer_AUMChanged();
 
   function initialize(address _vaultStorage, address _calculator, uint16 _maxAUMDropPercentage) external initializer {
     OwnableUpgradeable.__Ownable_init();
@@ -113,6 +114,12 @@ contract ExternalRebalancer is OwnableUpgradeable, ReentrancyGuardUpgradeable {
 
     // Transfer tokens to recipient
     vaultStorage.pushToken(_tokenToRemove, _recipient, _amountToRemove);
+
+    // Validate AUM must not change
+    uint256 finalAUM = calculator.getAUME30(false);
+    if (finalAUM != initialAUM) {
+      revert ExternalRebalancer_AUMChanged();
+    }
 
     emit LogRebalanceStarted(_tokenToRemove, _amountToRemove, _recipient, initialAUM);
   }
