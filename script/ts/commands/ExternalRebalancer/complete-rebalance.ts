@@ -53,7 +53,14 @@ async function main(chainId: number) {
   const allowance = await replacementTokenContract.allowance(signerAddress, externalRebalancer.address);
 
   if (allowance.lt(replacementAmount)) {
-    console.log(`[cmds/ExternalRebalancer] Approving ${ethers.utils.formatUnits(replacementAmount, 6)} USDC...`);
+    const tokenSymbol = await replacementTokenContract.symbol();
+    const tokenDecimals = await replacementTokenContract.decimals();
+    console.log(
+      `[cmds/ExternalRebalancer] Approving ${ethers.utils.formatUnits(
+        replacementAmount,
+        tokenDecimals
+      )} ${tokenSymbol}...`
+    );
     const approveTx = await replacementTokenContract.approve(externalRebalancer.address, replacementAmount);
     await approveTx.wait();
     console.log(`[cmds/ExternalRebalancer] Token approval completed.`);
