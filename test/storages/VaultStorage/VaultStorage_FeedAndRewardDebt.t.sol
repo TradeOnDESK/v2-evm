@@ -183,7 +183,7 @@ contract VaultStorage_FeedAndRewardDebtTest is VaultStorage_Base {
   }
 
   function testRevert_WhenFeedWithoutApproval() external {
-    vm.expectRevert();
+    vm.expectRevert("ERC20: insufficient allowance");
     vaultStorage.feed(testTokenAddress, FEED_AMOUNT, DURATION);
   }
 
@@ -195,6 +195,17 @@ contract VaultStorage_FeedAndRewardDebtTest is VaultStorage_Base {
 
     vm.expectRevert(IVaultStorage.IVaultStorage_NotWhiteListed.selector);
     vaultStorage.feed(testTokenAddress, FEED_AMOUNT, DURATION);
+  }
+
+  function testRevert_WhenFeedWithoutEnoughTokens() external {
+    // Approve more tokens than we actually have
+    testToken.approve(address(vaultStorage), testToken.balanceOf(address(this)) + 1);
+
+    // Try to feed more tokens than we have
+    uint256 amountToFeed = testToken.balanceOf(address(this)) + 1;
+
+    vm.expectRevert("ERC20: transfer amount exceeds balance");
+    vaultStorage.feed(testTokenAddress, amountToFeed, DURATION);
   }
 
   function testCorrectness_WhenFeedWithExpiredAtCalculation() external {
