@@ -84,6 +84,8 @@ contract LiquidityHandler is OwnableUpgradeable, ReentrancyGuardUpgradeable, ILi
   );
   event LogSetHlpStaking(address oldHlpStaking, address newHlpStaking);
   event LogSetDlp(address oldDlp, address newDlp);
+  event LogPaused(address account);
+  event LogUnpaused(address account);
 
   /**
    * States
@@ -101,6 +103,7 @@ contract LiquidityHandler is OwnableUpgradeable, ReentrancyGuardUpgradeable, ILi
   ISurgeStaking public hlpStaking;
   mapping(address user => mapping(uint256 orderId => bool isSurge)) isSurge; // isSurge is repurposed to isNotAutoStake to indicate if user want to auto-stake HLP or not
   address public dlp;
+  bool public paused;
 
   /// @notice Initializes the LiquidityHandler contract with the provided configuration parameters.
   /// @param _liquidityService Address of the LiquidityService contract.
@@ -145,6 +148,11 @@ contract LiquidityHandler is OwnableUpgradeable, ReentrancyGuardUpgradeable, ILi
     _;
   }
 
+  modifier whenNotPaused() {
+    if (paused) revert ILiquidityHandler_ContractPaused();
+    _;
+  }
+
   receive() external payable {
     if (msg.sender != ConfigStorage(LiquidityService(liquidityService).configStorage()).weth())
       revert ILiquidityHandler_InvalidSender();
@@ -166,7 +174,7 @@ contract LiquidityHandler is OwnableUpgradeable, ReentrancyGuardUpgradeable, ILi
     uint256 _minOut,
     uint256 _executionFee,
     bool _shouldWrap
-  ) external payable nonReentrant onlyAcceptedToken(_tokenIn) returns (uint256 _orderId) {
+  ) external payable nonReentrant onlyAcceptedToken(_tokenIn) whenNotPaused returns (uint256 _orderId) {
     return _createAddLiquidityOrder(_tokenIn, _amountIn, _minOut, _executionFee, _shouldWrap, false);
   }
 
@@ -184,7 +192,7 @@ contract LiquidityHandler is OwnableUpgradeable, ReentrancyGuardUpgradeable, ILi
     uint256 _executionFee,
     bool _shouldWrap,
     bool _isNotAutoStake
-  ) external payable nonReentrant onlyAcceptedToken(_tokenIn) returns (uint256 _orderId) {
+  ) external payable nonReentrant onlyAcceptedToken(_tokenIn) whenNotPaused returns (uint256 _orderId) {
     return _createAddLiquidityOrder(_tokenIn, _amountIn, _minOut, _executionFee, _shouldWrap, _isNotAutoStake);
   }
 
@@ -251,7 +259,7 @@ contract LiquidityHandler is OwnableUpgradeable, ReentrancyGuardUpgradeable, ILi
     uint256 _minOut,
     uint256 _executionFee,
     bool _isNativeOut
-  ) external payable nonReentrant onlyAcceptedToken(_tokenOut) returns (uint256 _orderId) {
+  ) external payable nonReentrant onlyAcceptedToken(_tokenOut) whenNotPaused returns (uint256 _orderId) {
     // pre validate
     LiquidityService(liquidityService).validatePreAddRemoveLiquidity(_amountIn);
     if (_executionFee < minExecutionOrderFee) revert ILiquidityHandler_InsufficientExecutionFee();
@@ -705,6 +713,18 @@ contract LiquidityHandler is OwnableUpgradeable, ReentrancyGuardUpgradeable, ILi
       dlp,
       type(uint256).max
     );
+  }
+
+  /// @notice Pause the contract, preventing new order creation
+  function pause() external onlyOwner {
+    paused = true;
+    emit LogPaused(msg.sender);
+  }
+
+  /// @notice Unpause the contract, allowing new order creation
+  function unpause() external onlyOwner {
+    paused = false;
+    emit LogUnpaused(msg.sender);
   }
 
   /// @custom:oz-upgrades-unsafe-allow constructor

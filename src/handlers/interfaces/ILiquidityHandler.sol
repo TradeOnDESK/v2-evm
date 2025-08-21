@@ -16,6 +16,7 @@ interface ILiquidityHandler {
   error ILiquidityHandler_NotOrderOwner();
   error ILiquidityHandler_NotWNativeToken();
   error ILiquidityHandler_Unauthorized();
+  error ILiquidityHandler_ContractPaused();
 
   /**
    * Structs
@@ -100,4 +101,10 @@ interface ILiquidityHandler {
   function setMinExecutionFee(uint256 _newMinExecutionFee) external;
 
   function setHlpStaking(address _hlpStaking) external;
+
+  function pause() external;
+
+  function unpause() external;
+
+  function paused() external view returns (bool);
 }
