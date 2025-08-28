@@ -526,12 +526,11 @@ contract LiquidityHandler is OwnableUpgradeable, ReentrancyGuardUpgradeable, ILi
     }
     // Remove Liquidity order
     else {
+      address hlp = ConfigStorage(LiquidityService(liquidityService).configStorage()).hlp();
       if (dlp != address(0)) {
-        uint256 hlpAmountToBeWrapped = IDLP(dlp).convertToAssets(_amount);
-        uint256 dlpAmount = IDLP(dlp).deposit(hlpAmountToBeWrapped, _account);
-        emit LogRefund(_account, _order.orderId, dlp, dlpAmount, false);
+        IERC20Upgradeable(dlp).safeTransfer(_account, _amount);
+        emit LogRefund(_account, _order.orderId, dlp, _amount, false);
       } else {
-        address hlp = ConfigStorage(LiquidityService(liquidityService).configStorage()).hlp();
         IERC20Upgradeable(hlp).safeTransfer(_account, _amount);
         emit LogRefund(_account, _order.orderId, hlp, _amount, false);
       }
