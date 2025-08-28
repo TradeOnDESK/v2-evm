@@ -42,6 +42,10 @@ contract Smoke_Trade is ForkEnv {
   }
 
   function _createAndExecuteMarketBuyOrder() internal {
+    // Whitelist limit order executor in LimitTradeHandler
+    vm.prank(ForkEnv.proxyAdmin.owner());
+    ForkEnv.limitTradeHandler.setWhitelistExecutor(ForkEnv.limitOrderExecutor, true);
+
     address subAccount = _getSubAccount(ALICE, SUB_ACCOUNT_NO);
     deal(ALICE, 10 ether);
 
@@ -134,6 +138,10 @@ contract Smoke_Trade is ForkEnv {
   }
 
   function _createAndExecuteMarketSellOrder() internal {
+    // Whitelist limit order executor in LimitTradeHandler
+    vm.prank(ForkEnv.proxyAdmin.owner());
+    ForkEnv.limitTradeHandler.setWhitelistExecutor(ForkEnv.limitOrderExecutor, true);
+
     address subAccount = _getSubAccount(ALICE, SUB_ACCOUNT_NO);
     deal(ALICE, 10 ether);
 

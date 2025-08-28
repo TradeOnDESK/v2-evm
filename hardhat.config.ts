@@ -39,13 +39,26 @@ const config: HardhatUserConfig = {
     },
   },
   solidity: {
-    version: "0.8.18",
-    settings: {
-      optimizer: {
-        enabled: true,
-        runs: 1,
+    compilers: [
+      {
+        version: "0.8.18",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 1,
+          },
+        },
       },
-    },
+      {
+        version: "0.8.20",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 1,
+          },
+        },
+      },
+    ],
   },
   paths: {
     sources: "./src",
@@ -70,11 +83,16 @@ const config: HardhatUserConfig = {
   // This fully resolves paths for imports in the ./lib directory for Hardhat
   preprocess: {
     eachLine: (hre) => ({
-      transform: (line: string) => {
+      transform: (line: string, sourceInfo: { absolutePath: string }) => {
+        const path = sourceInfo.absolutePath;
         if (line.match(/^\s*import /i)) {
           getRemappings().forEach(([find, replace]) => {
             if (line.match(find)) {
-              line = line.replace(find, replace);
+              if (path.includes("5.4.0") && line.includes("openzeppelin")) {
+                line = line.replace(find, replace.slice(0, -1) + "-5.4.0/");
+              } else {
+                line = line.replace(find, replace);
+              }
             }
           });
         }

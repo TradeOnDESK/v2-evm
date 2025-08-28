@@ -10,11 +10,18 @@ import { ERC20Upgradeable } from "@openzeppelin-upgradeable/contracts/token/ERC2
 
 // Interfaces
 import { IHLP } from "./interfaces/IHLP.sol";
+import { IRebaser } from "./interfaces/IRebaser.sol";
+import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
 
 contract HLP is ReentrancyGuardUpgradeable, OwnableUpgradeable, ERC20Upgradeable {
   mapping(address user => bool isMinter) public minters;
+  address public rebaser;
 
   event SetMinter(address indexed minter, bool isMinter);
+  event SetRebaser(address oldRebaser, address newRebaser);
+
+  error HLP_InvalidRebaser();
+  error HLP_InvalidAmount();
 
   /**
    * Modifiers
@@ -38,12 +45,125 @@ contract HLP is ReentrancyGuardUpgradeable, OwnableUpgradeable, ERC20Upgradeable
     emit SetMinter(minter, isMinter);
   }
 
-  function mint(address to, uint256 amount) external onlyMinter {
-    _mint(to, amount);
+  function originalTotalSupply() public view returns (uint256) {
+    return super.totalSupply();
   }
 
-  function burn(address from, uint256 amount) external onlyMinter {
-    _burn(from, amount);
+  function totalSupply() public view virtual override returns (uint256) {
+    return getRebasedAmount(super.totalSupply());
+  }
+
+  function originalBalanceOf(address account) public view returns (uint256) {
+    return super.balanceOf(account);
+  }
+
+  function originalAllowance(address owner, address spender) public view returns (uint256) {
+    return super.allowance(owner, spender);
+  }
+
+  function balanceOf(address account) public view virtual override returns (uint256) {
+    return getRebasedAmount(super.balanceOf(account));
+  }
+
+  function allowance(address owner, address spender) public view virtual override returns (uint256) {
+    return getRebasedAmount(super.allowance(owner, spender));
+  }
+
+  function approve(address spender, uint256 rebasedAmount) public virtual override returns (bool) {
+    address owner = _msgSender();
+    if (rebasedAmount == type(uint256).max) {
+      _approve(owner, spender, type(uint256).max);
+    } else {
+      _approve(owner, spender, getOriginalAmount(rebasedAmount));
+    }
+    return true;
+  }
+
+  function increaseAllowance(address spender, uint256 rebasedAddedValue) public virtual override returns (bool) {
+    approve(spender, allowance(msg.sender, spender) + rebasedAddedValue);
+    return true;
+  }
+
+  function decreaseAllowance(address spender, uint256 rebasedSubtractedValue) public virtual override returns (bool) {
+    address owner = _msgSender();
+    uint256 rebasedCurrentAllowance = allowance(owner, spender);
+    require(rebasedCurrentAllowance >= rebasedSubtractedValue, "ERC20: decreased allowance below zero");
+    unchecked {
+      approve(spender, rebasedCurrentAllowance - rebasedSubtractedValue);
+    }
+
+    return true;
+  }
+
+  function transferFrom(address from, address to, uint256 rebasedAmount) public virtual override returns (bool) {
+    address spender = _msgSender();
+    uint256 originalAmount = getOriginalAmount(rebasedAmount);
+    _spendAllowance(from, spender, originalAmount);
+    _transfer(from, to, originalAmount);
+    return true;
+  }
+
+  function _spendAllowance(address owner, address spender, uint256 amount) internal virtual override {
+    uint256 currentAllowance = super.allowance(owner, spender);
+    if (currentAllowance != type(uint256).max) {
+      require(currentAllowance >= amount, "ERC20: insufficient allowance");
+      unchecked {
+        _approve(owner, spender, currentAllowance - amount);
+      }
+    }
+  }
+
+  function mint(address to, uint256 rebasedAmount) external onlyMinter {
+    _mint(to, getOriginalAmount(rebasedAmount));
+  }
+
+  function burn(address from, uint256 rebasedAmount) external onlyMinter {
+    _burn(from, getOriginalAmount(rebasedAmount));
+  }
+
+  function transfer(address to, uint256 rebasedAmount) public virtual override returns (bool) {
+    address owner = _msgSender();
+    _transfer(owner, to, getOriginalAmount(rebasedAmount));
+    return true;
+  }
+
+  function setRebaser(address _rebaser) external onlyOwner {
+    if (_rebaser == address(0)) revert HLP_InvalidRebaser();
+    emit SetRebaser(rebaser, _rebaser);
+    rebaser = _rebaser;
+  }
+
+  function getRebasedAmount(uint256 amount) public view returns (uint256) {
+    if (rebaser == address(0)) {
+      return amount;
+    }
+
+    uint256 rebaseIndex = IRebaser(rebaser).rebaseIndex();
+    if (rebaseIndex == 0) {
+      return amount;
+    } else {
+      return Math.mulDiv(amount, rebaseIndex, 1e18);
+    }
+  }
+
+  // @param amount The amount of HLP in the rebased format
+  // @return The amount of HLP in the original balance without rebase
+  function getOriginalAmount(uint256 amount) public view returns (uint256) {
+    if (rebaser == address(0)) {
+      return amount;
+    }
+
+    uint256 rebaseIndex = IRebaser(rebaser).rebaseIndex();
+    if (rebaseIndex == 0) {
+      return amount;
+    } else {
+      // Check for potential overflow: if amount * 1e18 would overflow
+      if (amount > type(uint256).max / 1e18) {
+        // If multiplication would overflow, return maxUint256 as a safe fallback
+        revert HLP_InvalidAmount();
+      }
+      return Math.mulDiv(amount, 1e18, rebaseIndex);
+    }
   }
 
   /// @custom:oz-upgrades-unsafe-allow constructor

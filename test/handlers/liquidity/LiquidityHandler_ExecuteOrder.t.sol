@@ -281,6 +281,7 @@ contract LiquidityHandler_ExecuteOrder is LiquidityHandler_Base {
   function test_correctness_executeOrder_native_createRemoveLiquidityOrder() external {
     // 1 Create Native add liquidity
     vm.deal(ALICE, 10 ether); //5 for executeOrderFee , 5 for create liquidity position
+    hlp.mint(address(liquidityHandler), 1);
     vm.startPrank(ALICE);
 
     uint256 _orderIndex = liquidityHandler.createAddLiquidityOrder{ value: 10 ether }(
@@ -295,6 +296,8 @@ contract LiquidityHandler_ExecuteOrder is LiquidityHandler_Base {
     vm.stopPrank();
 
     // 2 Assert LIquidity Order
+    assertEq(address(weth).balance, 10 ether, "weth balance");
+
     assertEq(_beforeExecuteOrders.length, 1, "Order Amount After Created Order");
     assertEq(liquidityHandler.nextExecutionOrderIndex(), 0, "Order Index After Created Order");
 
@@ -324,8 +327,11 @@ contract LiquidityHandler_ExecuteOrder is LiquidityHandler_Base {
     assertEq(liquidityHandler.nextExecutionOrderIndex(), 1, "Order Index After Executed Order");
     assertEq(ALICE.balance, 0, "ALICE received balance");
 
+    assertEq(address(weth).balance, 5 ether, "weth balance 2");
+
     // 5 Create remove Liquidity order
     _orderIndex = _createRemoveLiquidityNativeOrder();
+    assertEq(address(weth).balance, 10 ether, "weth balance 3");
     // 6 execute liquidity order
     liquidityHandler.executeOrder(
       _orderIndex,
@@ -335,6 +341,7 @@ contract LiquidityHandler_ExecuteOrder is LiquidityHandler_Base {
       block.timestamp,
       keccak256("someEncodedVaas")
     );
+    assertEq(address(weth).balance, 0 ether, "weth balance 4");
 
     _aliceOrdersAfter = liquidityHandler.getLiquidityOrders();
 
@@ -476,6 +483,7 @@ contract LiquidityHandler_ExecuteOrder is LiquidityHandler_Base {
   }
 
   function _createRemoveLiquidityOrder() internal returns (uint256) {
+    uint256 hlpBalanceBefore = hlp.balanceOf(ALICE);
     vm.deal(ALICE, 5 ether);
     hlp.mint(ALICE, 5 ether);
 
@@ -492,7 +500,7 @@ contract LiquidityHandler_ExecuteOrder is LiquidityHandler_Base {
     );
     vm.stopPrank();
 
-    assertEq(hlp.balanceOf(ALICE), 0, "User HLP Balance");
+    assertEq(hlpBalanceBefore - hlp.balanceOf(ALICE), 0, "User HLP Balance");
 
     ILiquidityHandler.LiquidityOrder[] memory _orders = liquidityHandler.getLiquidityOrders();
 
@@ -508,6 +516,7 @@ contract LiquidityHandler_ExecuteOrder is LiquidityHandler_Base {
   }
 
   function _createRemoveLiquidityNativeOrder() internal returns (uint256 _orderIndex) {
+    uint256 hlpBalanceBefore = hlp.balanceOf(ALICE);
     vm.deal(ALICE, 5 ether);
     uint256 _amount = 5 ether;
     hlp.mint(ALICE, _amount);
@@ -530,7 +539,7 @@ contract LiquidityHandler_ExecuteOrder is LiquidityHandler_Base {
       5 ether,
       "LiquidityHandler Order ExecutionFee"
     );
-    assertEq(hlp.balanceOf(ALICE), 0, "User HLP Balance");
+    assertEq(hlpBalanceBefore - hlp.balanceOf(ALICE), 0, "User HLP Balance");
 
     ILiquidityHandler.LiquidityOrder[] memory _orders = liquidityHandler.getLiquidityOrders();
 

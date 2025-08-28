@@ -15,14 +15,41 @@ async function main(chainId: number) {
     {
       tokenAddress: config.tokens.usdcNative,
       config: {
-        targetWeight: ethers.utils.parseEther("0.1"), // 10%
+        targetWeight: ethers.utils.parseEther("0.5"), // 50%
         bufferLiquidity: 0,
         maxWeightDiff: ethers.utils.parseEther("1000"), // 100000 % (Don't check max weight diff at launch)
         accepted: true,
       },
     },
     {
-      tokenAddress: config.tokens.usdc,
+      tokenAddress: config.tokens.weth,
+      config: {
+        targetWeight: ethers.utils.parseEther("0.25"), // 25%
+        bufferLiquidity: 0,
+        maxWeightDiff: ethers.utils.parseEther("1000"), // 100000 % (Don't check max weight diff at launch)
+        accepted: true,
+      },
+    },
+    {
+      tokenAddress: config.tokens.wbtc,
+      config: {
+        targetWeight: ethers.utils.parseEther("0.25"), // 25%
+        bufferLiquidity: 0,
+        maxWeightDiff: ethers.utils.parseEther("1000"), // 100000 % (Don't check max weight diff at launch)
+        accepted: true,
+      },
+    },
+    {
+      tokenAddress: config.tokens.gmBTCUSD,
+      config: {
+        targetWeight: ethers.utils.parseEther("0"), // 0%
+        bufferLiquidity: 0,
+        maxWeightDiff: ethers.utils.parseEther("1000"), // 100000 % (Don't check max weight diff at launch)
+        accepted: false,
+      },
+    },
+    {
+      tokenAddress: config.tokens.gmETHUSD,
       config: {
         targetWeight: ethers.utils.parseEther("0"), // 0%
         bufferLiquidity: 0,
